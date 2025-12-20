@@ -1,0 +1,337 @@
+.searchWrap {
+  position: relative;
+}
+
+.searchTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.searchChip {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+
+  color: var(--muted);
+}
+
+.searchBar {
+  flex: 1;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.86);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 0 12px 0 14px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.08s ease,
+    box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.searchBar:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(79, 70, 229, 0.25);
+  box-shadow: 0 18px 50px rgba(79, 70, 229, 0.08);
+}
+
+.searchBar:active {
+  transform: translateY(1px);
+}
+
+.searchPlaceholder {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.searchHint {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 5px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.searchBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+}
+
+.searchPanel {
+  position: fixed;
+  left: 50%;
+  top: 96px;
+  transform: translateX(-50%) translateY(-10px);
+  width: min(980px, calc(100vw - 64px));
+  opacity: 0;
+  pointer-events: none;
+
+  z-index: 60;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.searchPanel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.searchPanelHead {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+.searchInputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
+}
+
+.searchInputIcon {
+  color: var(--muted);
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.searchClear {
+  border: none;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--muted);
+  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.08s ease, background 0.18s ease;
+}
+
+.searchClear:hover {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.searchClear:active {
+  transform: translateY(1px);
+}
+
+.searchCancel {
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 800;
+  background: transparent;
+  padding: 10px 10px;
+  border-radius: 12px;
+  transition: background 0.18s ease;
+}
+
+.searchCancel:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.searchGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.searchCol {
+  padding: 6px;
+}
+
+.searchTitle {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.6);
+  margin-bottom: 10px;
+}
+
+.searchList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.18s ease,
+    background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.searchItem:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(79, 70, 229, 0.25);
+  box-shadow: 0 16px 40px rgba(79, 70, 229, 0.08);
+}
+
+.searchItem:active {
+  transform: translateY(1px);
+}
+
+.searchItem.compact {
+  padding: 10px 12px;
+}
+
+.searchItem .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+}
+
+.searchItem .label {
+  font-weight: 800;
+  color: var(--text);
+  flex: 1;
+  text-align: left;
+}
+
+.searchItem .arrow {
+  color: rgba(15, 23, 42, 0.45);
+}
+
+.searchCards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.searchCard {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.18s ease,
+    background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.searchCard:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(79, 70, 229, 0.25);
+  box-shadow: 0 16px 40px rgba(79, 70, 229, 0.08);
+}
+
+.searchCard:active {
+  transform: translateY(1px);
+}
+
+.searchCardIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+
+  background: rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  color: var(--accent);
+}
+
+.searchCardLabel {
+  font-weight: 900;
+  color: var(--text);
+}
+
+.searchCardSub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.searchEmpty {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.searchFooter {
+  padding: 12px 16px 14px;
+  border-top: 1px solid rgba(15, 23, 42, 0.07);
+  color: rgba(15, 23, 42, 0.65);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.searchFooter kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 900;
+}
+
+@media (max-width: 860px) {
+  .searchGrid {
+    grid-template-columns: 1fr;
+  }
+  .searchPanel {
+    top: 76px;
+    width: calc(100vw - 28px);
+  }
+}

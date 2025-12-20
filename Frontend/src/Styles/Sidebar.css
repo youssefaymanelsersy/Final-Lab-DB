@@ -1,0 +1,164 @@
+.sidebar{
+  width: 280px;
+  min-height: 100vh;
+  padding: 18px;
+
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.75));
+  border-right: 1px solid var(--line);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sbBrand{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:10px 10px 16px;
+}
+
+.sbMark{
+  width:38px;
+  height:38px;
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.75), transparent 60%),
+    linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 12px 30px rgba(79,70,229,.18);
+}
+
+.sbName{
+  font-weight:700;
+  letter-spacing:.2px;
+}
+
+.sbSub{
+  margin-top:2px;
+  font-size:12px;
+  color: var(--muted);
+}
+
+.sbNav{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:10px;
+}
+
+/* NavLink => <a> */
+.sidebar .sbNav a.sbItem{
+  display:flex;
+  gap:10px;
+  align-items:center;
+
+  padding:10px 12px;
+  border-radius:14px;
+
+  border: 1px solid transparent;
+  background: transparent;
+
+  color: var(--text);
+  font-weight:600;
+
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.sidebar .sbNav a.sbItem svg{
+  color: var(--muted);
+  transition: color .18s ease;
+}
+
+.sidebar .sbNav a.sbItem:hover{
+  background: rgba(15, 23, 42, .04);
+  border-color: rgba(15, 23, 42, .06);
+}
+
+.sidebar .sbNav a.sbItem.active{
+  background: rgba(79,70,229,.10);
+  border-color: rgba(79,70,229,.22);
+}
+
+.sidebar .sbNav a.sbItem.active svg{
+  color: var(--accent);
+}
+
+.sbBottom{
+  margin-top:auto;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Logout button */
+.sbGhost{
+  width:100%;
+  display:flex;
+  gap:10px;
+  align-items:center;
+
+  padding:10px 12px;
+  border-radius:14px;
+
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.85);
+
+  color: var(--text);
+  font-weight:600;
+
+  cursor:pointer;
+  transition: background .18s ease, border-color .18s ease, transform .08s ease;
+}
+
+.sbGhost svg{
+  color: var(--muted);
+  transition: color .18s ease;
+}
+
+.sbGhost:hover{
+  background: #fff;
+  border-color: rgba(79,70,229,.22);
+}
+
+.sbGhost:hover svg{
+  color: var(--accent);
+}
+
+.sbGhost:active{
+  transform: translateY(1px);
+}
+
+.sbMe{
+  display:flex;
+  gap:10px;
+  align-items:center;
+
+  padding:12px;
+  border-radius:16px;
+
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.85);
+}
+
+.sbAvatar{
+  width:36px;
+  height:36px;
+  border-radius:14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background: rgba(15, 23, 42, .06);
+  border:1px solid rgba(15, 23, 42, .08);
+
+  font-weight:800;
+  color: var(--text);
+}
+
+.sbMeName{ font-weight:700; }
+.sbMeRole{
+  margin-top:2px;
+  font-size:12px;
+  color: var(--muted);
+}

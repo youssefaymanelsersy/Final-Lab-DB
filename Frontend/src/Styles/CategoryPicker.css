@@ -1,0 +1,83 @@
+.bnCats {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+.bnCatsTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bnCatsTitle {
+  font-weight: 800;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.bnCatsLink {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.bnCatsLink:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text);
+}
+
+.bnCatsTabs {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.bnCatsTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.bnCatTab {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px 2px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  position: relative;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+
+.bnCatTab:hover {
+  color: var(--text);
+}
+
+.bnCatTab.active {
+  color: var(--text);
+}
+
+.bnCatTab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.25);
+}
