@@ -190,15 +190,15 @@ INSERT INTO authors (full_name) VALUES
 -- ============================================================
 INSERT INTO books (isbn, title, publisher_id, publication_year, selling_price, category, stock_qty, threshold, cover_url) VALUES
 ('9780553380163', 'A Brief History of Time', 1, 1998, 220.00, 'Science', 25, 8,
- 'https://covers.openlibrary.org/b/isbn/9780553380163-L.jpg'),
+  'https://covers.openlibrary.org/b/isbn/9780553380163-L.jpg'),
 ('9780714832470', 'The Story of Art', 2, 1995, 250.00, 'Art', 12, 5,
- 'https://covers.openlibrary.org/b/isbn/9780714832470-L.jpg'),
+  'https://covers.openlibrary.org/b/isbn/9780714832470-L.jpg'),
 ('9780062316097', 'Sapiens: A Brief History of Humankind', 3, 2015, 210.00, 'History', 9, 6,
- 'https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg'),
+  'https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg'),
 ('9780192802385', 'A History of God', 4, 1994, 190.00, 'Religion', 20, 7,
- 'https://covers.openlibrary.org/b/isbn/9780192802385-L.jpg'),
+  'https://covers.openlibrary.org/b/isbn/9780192802385-L.jpg'),
 ('9781783962433', 'Prisoners of Geography', 5, 2016, 200.00, 'Geography', 10, 6,
- 'https://covers.openlibrary.org/b/isbn/9781783962433-L.jpg');
+  'https://covers.openlibrary.org/b/isbn/9781783962433-L.jpg');
 
 -- link authors
 INSERT INTO book_authors (isbn, author_id)
