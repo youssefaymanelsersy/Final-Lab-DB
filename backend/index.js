@@ -284,6 +284,43 @@ app.get('/api/admin/reports/top-customers', async (req, res) => {
     res.status(500).json({ ok: false, error: error.message });
   }
 });
+/**
+ * GET /api/admin/reports/top-books?months=3&limit=10
+ * Top selling books ranked by total copies sold in the last N months.
+ */
+app.get('/api/admin/reports/top-books', async (req, res) => {
+  try {
+    const months = Math.max(Number(req.query.months || 3), 1);
+    const limit = Math.min(Math.max(Number(req.query.limit || 10), 1), 50);
+
+    const sql = `
+      SELECT
+        b.isbn,
+        b.title,
+        b.cover_url,
+        SUM(oi.qty) AS copies_sold,
+        SUM(oi.qty * oi.unit_price) AS revenue
+      FROM orders o
+      JOIN order_items oi ON oi.order_id = o.id
+      JOIN books b ON b.isbn = oi.isbn
+      WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+      GROUP BY b.isbn, b.title, b.cover_url
+      ORDER BY copies_sold DESC, revenue DESC, b.title ASC
+      LIMIT ?;
+    `;
+
+    const [rows] = await pool.query(sql, [months, limit]);
+
+    res.json({
+      ok: true,
+      months,
+      limit,
+      data: rows,
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 
 /******************************************************************
  * Start server

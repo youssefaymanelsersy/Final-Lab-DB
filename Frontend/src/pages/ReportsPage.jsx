@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Bell, Download, RefreshCcw, ArrowUpRight } from 'lucide-react';
 import '../Styles/ReportsPage.css';
 
@@ -32,36 +32,43 @@ function TableCard({ title, right, children }) {
 }
 
 export default function ReportsPage() {
-  // -------------------------
-  // MOCK (Top Books) for now
-  // -------------------------
-  const topBooks = useMemo(
-    () => [
-      { label: 'Cosmos', value: 45 },
-      { label: 'Sapiens', value: 32 },
-      { label: '1984', value: 28 },
-      { label: 'Others', value: 55 },
-    ],
-    []
-  );
-
-  const top10Books = useMemo(
-    () => [
-      { rank: 1, title: 'Cosmos', units: 50, revenue: 11500 },
-      { rank: 2, title: 'Sapiens', units: 45, revenue: 9800 },
-      { rank: 3, title: '1984', units: 39, revenue: 9000 },
-      { rank: 4, title: 'The Art Book', units: 29, revenue: 8500 },
-      { rank: 5, title: 'Guns, Germs, and Steel', units: 29, revenue: 7500 },
-      { rank: 6, title: 'The Silk Roads', units: 24, revenue: 6900 },
-      { rank: 7, title: 'Meditations', units: 20, revenue: 5600 },
-      { rank: 8, title: 'A Brief History of Time', units: 19, revenue: 5400 },
-      { rank: 9, title: 'The Alchemist', units: 18, revenue: 5100 },
-      { rank: 10, title: 'Prisoners of Geography', units: 16, revenue: 4600 },
-    ],
-    []
-  );
-
   const [openTop10, setOpenTop10] = useState(false);
+
+  // -------------------------
+  // Top 10 Books (API)
+  // -------------------------
+  const [topBooksState, setTopBooksState] = useState({
+    loading: true,
+    books: [],
+    error: null,
+  });
+
+  async function fetchTopBooks(months = 3, limit = 10) {
+    try {
+      setTopBooksState((p) => ({ ...p, loading: true, error: null }));
+
+      const res = await fetch(
+        `http://localhost:3000/api/admin/reports/top-books?months=${months}&limit=${limit}`
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.ok)
+        throw new Error(data.error || 'Failed to load top books');
+
+      setTopBooksState({
+        loading: false,
+        books: data.data || [],
+        error: null,
+      });
+    } catch (e) {
+      setTopBooksState((p) => ({
+        ...p,
+        loading: false,
+        books: [],
+        error: e.message || 'Unknown error',
+      }));
+    }
+  }
 
   // -------------------------
   // Sales By Day (API)
@@ -192,7 +199,7 @@ export default function ReportsPage() {
   }
 
   // -------------------------
-  // Book Orders Count (mock for now)
+  // Book Orders Count lookup (mock for now)
   // -------------------------
   const [isbnQuery, setIsbnQuery] = useState('');
   const [ordersCount, setOrdersCount] = useState(5);
@@ -203,10 +210,32 @@ export default function ReportsPage() {
   }
 
   // -------------------------
-  // Donut percent values (mock)
+  // Donut values (REAL from top books)
+  // We show top 3 + Others (sum of the rest)
   // -------------------------
-  const total = topBooks.reduce((s, x) => s + x.value, 0);
-  const p = topBooks.map((x) => Math.round((x.value / total) * 100));
+  const topBooks = topBooksState.books || [];
+  const top3 = topBooks.slice(0, 3);
+  const othersUnits = topBooks
+    .slice(3)
+    .reduce((s, b) => s + Number(b.copies_sold ?? 0), 0);
+
+  const donutLegend = [
+    { label: top3[0]?.title || '—', value: Number(top3[0]?.copies_sold ?? 0) },
+    { label: top3[1]?.title || '—', value: Number(top3[1]?.copies_sold ?? 0) },
+    { label: top3[2]?.title || '—', value: Number(top3[2]?.copies_sold ?? 0) },
+    { label: 'Others', value: Number(othersUnits ?? 0) },
+  ];
+
+  const totalUnits = donutLegend.reduce((s, x) => s + Number(x.value || 0), 0);
+  const p =
+    totalUnits > 0
+      ? donutLegend.map((x) =>
+          Math.round((Number(x.value || 0) / totalUnits) * 100)
+        )
+      : [0, 0, 0, 0];
+
+  // Top Book KPI (REAL)
+  const topBook = topBooks[0] || null;
 
   // -------------------------
   // On page load
@@ -215,6 +244,7 @@ export default function ReportsPage() {
     loadPreviousMonth();
     runSalesByDay();
     loadTopCustomers(3, 5);
+    fetchTopBooks(3, 10);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -222,6 +252,7 @@ export default function ReportsPage() {
   async function handleRefresh() {
     await loadPreviousMonth();
     await loadTopCustomers(topCustomersData.months, 5);
+    await fetchTopBooks(3, 10);
   }
 
   return (
@@ -253,9 +284,15 @@ export default function ReportsPage() {
               className="rpBtn rpBtnPrimary"
               type="button"
               onClick={handleRefresh}
-              disabled={prevMonth.loading || topCustomersData.loading}
+              disabled={
+                prevMonth.loading ||
+                topCustomersData.loading ||
+                topBooksState.loading
+              }
               title={
-                prevMonth.loading || topCustomersData.loading
+                prevMonth.loading ||
+                topCustomersData.loading ||
+                topBooksState.loading
                   ? 'Loading...'
                   : 'Refresh'
               }
@@ -367,18 +404,26 @@ export default function ReportsPage() {
               right={topCustomersData.error ? 'Error' : 'Top'}
             />
 
-            {/* Top Book KPI (still mock) */}
+            {/* Top Book KPI (REAL) */}
             <KpiCard
               tone="plain"
               title="Top Book (3 months)"
-              value="50 units"
-              subLeft="Cosmos"
-              subRight="$11,500 revenue"
-              right="+3.9%"
+              value={
+                topBooksState.loading
+                  ? 'Loading...'
+                  : `${Number(topBook?.copies_sold ?? 0)} units`
+              }
+              subLeft={topBooksState.loading ? '—' : topBook?.title || '—'}
+              subRight={
+                topBooksState.loading
+                  ? '—'
+                  : `$${Number(topBook?.revenue ?? 0).toFixed(2)} revenue`
+              }
+              right={topBooksState.error ? 'Error' : 'Top'}
             />
           </div>
 
-          {/* Donut / Product statistics (mock for now) */}
+          {/* Donut / Product statistics (REAL) */}
           <div className="rpCard rpSide">
             <div className="rpCardHead">
               <div>
@@ -386,10 +431,8 @@ export default function ReportsPage() {
                 <div className="rpHint">Top selling books (last 3 months)</div>
               </div>
 
-              <select className="rpSelect">
-                <option>Today</option>
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
+              <select className="rpSelect" disabled>
+                <option>Last 3 months</option>
               </select>
             </div>
 
@@ -412,21 +455,33 @@ export default function ReportsPage() {
               </div>
 
               <div className="rpLegend">
-                {topBooks.slice(0, 3).map((x) => (
-                  <div key={x.label} className="rpLegendRow">
-                    <div className="rpLegendName">{x.label}</div>
-                    <div className="rpLegendVal">{x.value}</div>
-                  </div>
-                ))}
+                {topBooksState.loading ? (
+                  <div className="rpHint">Loading...</div>
+                ) : topBooksState.error ? (
+                  <div className="rpHint">{topBooksState.error}</div>
+                ) : topBooks.length === 0 ? (
+                  <div className="rpHint">No sales in the last 3 months.</div>
+                ) : (
+                  <>
+                    {donutLegend.slice(0, 3).map((x, idx) => (
+                      <div key={`${x.label}-${idx}`} className="rpLegendRow">
+                        <div className="rpLegendName">{x.label}</div>
+                        <div className="rpLegendVal">{x.value}</div>
+                      </div>
+                    ))}
 
-                <button
-                  type="button"
-                  className="rpLegendRow rpLegendRowMuted rpLegendBtn"
-                  onClick={() => setOpenTop10(true)}
-                >
-                  <span className="rpLegendName">Others</span>
-                  <span className="rpLegendVal">{topBooks[3].value}</span>
-                </button>
+                    <button
+                      type="button"
+                      className="rpLegendRow rpLegendRowMuted rpLegendBtn"
+                      onClick={() => setOpenTop10(true)}
+                    >
+                      <span className="rpLegendName">Others</span>
+                      <span className="rpLegendVal">
+                        {donutLegend[3].value}
+                      </span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -546,14 +601,14 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Modal: Top 10 Books (mock for now) */}
+        {/* Modal: Top 10 Books (REAL) */}
         {openTop10 && (
           <div className="rpModalBackdrop" onClick={() => setOpenTop10(false)}>
             <div className="rpModal" onClick={(e) => e.stopPropagation()}>
               <div className="rpModalHead">
                 <div>
                   <div className="rpModalTitle">Top 10 Selling Books</div>
-                  <div className="rpHint">Last 3 months (mock)</div>
+                  <div className="rpHint">Last 3 months</div>
                 </div>
 
                 <button
@@ -576,14 +631,34 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {top10Books.map((b) => (
-                      <tr key={b.rank}>
-                        <td className="rpTdRank">{b.rank}</td>
-                        <td>{b.title}</td>
-                        <td>{b.units}</td>
-                        <td>${b.revenue.toLocaleString()}</td>
+                    {topBooksState.loading ? (
+                      <tr>
+                        <td colSpan={4} style={{ opacity: 0.7, padding: 14 }}>
+                          Loading...
+                        </td>
                       </tr>
-                    ))}
+                    ) : topBooksState.error ? (
+                      <tr>
+                        <td colSpan={4} style={{ opacity: 0.7, padding: 14 }}>
+                          {topBooksState.error}
+                        </td>
+                      </tr>
+                    ) : topBooks.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} style={{ opacity: 0.7, padding: 14 }}>
+                          No data
+                        </td>
+                      </tr>
+                    ) : (
+                      topBooks.map((b, idx) => (
+                        <tr key={b.isbn || idx}>
+                          <td className="rpTdRank">{idx + 1}</td>
+                          <td>{b.title}</td>
+                          <td>{Number(b.copies_sold ?? 0)}</td>
+                          <td>${Number(b.revenue ?? 0).toLocaleString()}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
