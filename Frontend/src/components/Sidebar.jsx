@@ -1,18 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import '../Styles/Sidebar.css';
-import {
-  LayoutGrid,
-  Users,
-  Library,
-  ShoppingBag,
-  Settings,
-  LogOut,
-} from 'lucide-react';
+import { Users, Library, ShoppingBag, BarChart3, LogOut } from 'lucide-react';
 
 const navItems = [
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/books', label: 'Books', icon: Library },
   { to: '/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/reports', label: 'Reports', icon: BarChart3 },
 ];
 
 export default function Sidebar() {
