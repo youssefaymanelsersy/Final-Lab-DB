@@ -3,17 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import '../Styles/LoginPage.css';
 import bookphoto from '../assets/bookphoto2.jpeg';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
 export default function LoginPage() {
   const [mode, setMode] = useState('login'); // "login" | "signup"
   const isSignup = mode === 'signup';
   const navigate = useNavigate();
 
-  // login inputs
-  const [loginUser, setLoginUser] = useState('');
+  // -----------------------
+  // LOGIN STATE
+  // -----------------------
+  const [loginUsername, setLoginUsername] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginErr, setLoginErr] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
-  // signup inputs (matches your customers table needs)
+  // -----------------------
+  // SIGNUP STATE (matches backend auth.js)
+  // -----------------------
   const [suUsername, setSuUsername] = useState('');
   const [suFirst, setSuFirst] = useState('');
   const [suLast, setSuLast] = useState('');
@@ -21,8 +28,8 @@ export default function LoginPage() {
   const [suPhone, setSuPhone] = useState('');
   const [suAddress, setSuAddress] = useState('');
   const [suPass, setSuPass] = useState('');
-  const [suPass2, setSuPass2] = useState('');
   const [suErr, setSuErr] = useState('');
+  const [suLoading, setSuLoading] = useState(false);
 
   const bgStyle = useMemo(
     () => ({
@@ -43,52 +50,68 @@ export default function LoginPage() {
     setSuErr('');
   };
 
-  const onLoginSubmit = (e) => {
+  async function postJSON(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Request failed (${res.status})`);
+    }
+    return data;
+  }
+
+  const onLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginErr('');
+    setLoginLoading(true);
 
-    const u = loginUser.trim().toLowerCase();
-    const p = loginPass;
+    try {
+      const data = await postJSON(`${API_BASE}/api/auth/login`, {
+        username: loginUsername.trim(),
+        password: loginPass,
+      });
 
-    // TEMP demo auth until backend
-    if (u === 'ahmed' && p === '1234') {
-      localStorage.setItem('auth_user', 'ahmed');
       localStorage.setItem('auth_ok', '1');
-      navigate('/books');
-      return;
-    }
+      localStorage.setItem('customer_id', String(data.customer_id));
 
-    setLoginErr('Wrong username or password.');
+      navigate('/books');
+    } catch (err) {
+      setLoginErr(err.message || 'Login failed');
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
-  const onSignupSubmit = (e) => {
+  const onSignupSubmit = async (e) => {
     e.preventDefault();
     setSuErr('');
+    setSuLoading(true);
 
-    if (suPass.length < 4) {
-      setSuErr('Password must be at least 4 characters.');
-      return;
+    try {
+      const data = await postJSON(`${API_BASE}/api/auth/signup`, {
+        username: suUsername.trim(),
+        password: suPass,
+        first_name: suFirst.trim(),
+        last_name: suLast.trim(),
+        email: suEmail.trim(),
+        phone: suPhone.trim(),
+        shipping_address: suAddress.trim(),
+      });
+
+      // Your backend currently returns only { ok:true, message }
+      // so we just switch to login after successful signup.
+      // (If you later return customer_id, you can auto-login.)
+      switchToLogin();
+    } catch (err) {
+      setSuErr(err.message || 'Signup failed');
+    } finally {
+      setSuLoading(false);
     }
-
-    if (suPass !== suPass2) {
-      setSuErr('Passwords do not match.');
-      return;
-    }
-
-    // TEMP until backend is connected
-    alert('For now use: ahmed / 1234');
-
-    // optional reset
-    setSuUsername('');
-    setSuFirst('');
-    setSuLast('');
-    setSuEmail('');
-    setSuPhone('');
-    setSuAddress('');
-    setSuPass('');
-    setSuPass2('');
-
-    switchToLogin();
   };
 
   return (
@@ -121,13 +144,12 @@ export default function LoginPage() {
         </div>
 
         <div className="authBody">
+          {/* LEFT */}
           <section className="authPanel authPanelLeft">
-            {/* LOGIN */}
+            {/* Login */}
             <div className={`authFormWrap ${!isSignup ? 'show' : 'hide'}`}>
               <h1 className="authTitle">Welcome back</h1>
-              <p className="authSub">
-                Use demo credentials for now: <b>ahmed</b> / <b>1234</b>
-              </p>
+              <p className="authSub">Login with your account.</p>
 
               <form className="authForm" onSubmit={onLoginSubmit}>
                 <label className="authLabel">
@@ -135,9 +157,9 @@ export default function LoginPage() {
                   <input
                     className="authInput"
                     type="text"
-                    placeholder="ahmed"
-                    value={loginUser}
-                    onChange={(e) => setLoginUser(e.target.value)}
+                    placeholder="username"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
                     required
                   />
                 </label>
@@ -147,119 +169,51 @@ export default function LoginPage() {
                   <input
                     className="authInput"
                     type="password"
-                    placeholder="1234"
+                    placeholder="••••••••"
                     value={loginPass}
                     onChange={(e) => setLoginPass(e.target.value)}
                     required
                   />
                 </label>
 
-                <div className="authRow">
-                  <label className="authCheck">
-                    <input type="checkbox" />
-                    Remember me
-                  </label>
-
-                  <button
-                    type="button"
-                    className="authLinkBtn"
-                    onClick={() => alert('Forgot password (later)')}
-                  >
-                    Forgot?
-                  </button>
-                </div>
-
                 {loginErr ? <div className="authError">{loginErr}</div> : null}
 
-                <button className="authBtnPrimary" type="submit">
-                  Login
+                <button
+                  className="authBtnPrimary"
+                  type="submit"
+                  disabled={loginLoading}
+                >
+                  {loginLoading ? 'Logging in...' : 'Login'}
                 </button>
-
-                <p className="authHint">
-                  Don&apos;t have an account?{' '}
-                  <button
-                    type="button"
-                    className="authInlineBtn"
-                    onClick={switchToSignup}
-                  >
-                    Create one
-                  </button>
-                </p>
               </form>
             </div>
 
-            {/* SIGNUP */}
+            {/* Signup */}
             <div className={`authFormWrap ${isSignup ? 'show' : 'hide'}`}>
               <h1 className="authTitle">Create account</h1>
+              <p className="authSub">Fill your details to sign up.</p>
 
               <form className="authForm" onSubmit={onSignupSubmit}>
-                {/* SECTION 1: Account */}
-                <div className="authSection">
-                  <div className="authSectionTitle">Account</div>
-
-                  <div className="authGrid2">
-                    <label className="authLabel">
-                      Username
-                      <input
-                        className="authInput"
-                        type="text"
-                        placeholder="ahmed"
-                        value={suUsername}
-                        onChange={(e) => setSuUsername(e.target.value)}
-                        required
-                      />
-                    </label>
-
-                    <label className="authLabel">
-                      Email
-                      <input
-                        className="authInput"
-                        type="email"
-                        placeholder="ahmed@example.com"
-                        value={suEmail}
-                        onChange={(e) => setSuEmail(e.target.value)}
-                        required
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* SECTION 2: Profile */}
-                <div className="authSection">
-                  <div className="authSectionTitle">Profile</div>
-
-                  <div className="authGrid2">
-                    <label className="authLabel">
-                      First name
-                      <input
-                        className="authInput"
-                        type="text"
-                        placeholder="Ahmed"
-                        value={suFirst}
-                        onChange={(e) => setSuFirst(e.target.value)}
-                        required
-                      />
-                    </label>
-
-                    <label className="authLabel">
-                      Last name
-                      <input
-                        className="authInput"
-                        type="text"
-                        placeholder="Sameh"
-                        value={suLast}
-                        onChange={(e) => setSuLast(e.target.value)}
-                        required
-                      />
-                    </label>
-                  </div>
+                {/* Username + Phone */}
+                <div className="authGrid2">
+                  <label className="authLabel">
+                    Username
+                    <input
+                      className="authInput"
+                      type="text"
+                      placeholder="ahmed123"
+                      value={suUsername}
+                      onChange={(e) => setSuUsername(e.target.value)}
+                      required
+                    />
+                  </label>
 
                   <label className="authLabel">
                     Phone
                     <input
                       className="authInput"
-                      type="tel"
-                      placeholder="+20 01000000000"
+                      type="text"
+                      placeholder="01xxxxxxxxx"
                       value={suPhone}
                       onChange={(e) => setSuPhone(e.target.value)}
                       required
@@ -267,85 +221,94 @@ export default function LoginPage() {
                   </label>
                 </div>
 
-                {/* SECTION 3: Delivery */}
-                <div className="authSection">
-                  <div className="authSectionTitle">Delivery</div>
+                {/* First name + Last name */}
+                <div className="authGrid2">
+                  <label className="authLabel">
+                    First name
+                    <input
+                      className="authInput"
+                      type="text"
+                      placeholder="Ahmed"
+                      value={suFirst}
+                      onChange={(e) => setSuFirst(e.target.value)}
+                      required
+                    />
+                  </label>
 
                   <label className="authLabel">
-                    Shipping address
-                    <textarea
-                      className="authTextarea"
-                      placeholder="Alexandria, Egypt"
-                      value={suAddress}
-                      onChange={(e) => setSuAddress(e.target.value)}
-                      rows={3}
+                    Last name
+                    <input
+                      className="authInput"
+                      type="text"
+                      placeholder="Sameh"
+                      value={suLast}
+                      onChange={(e) => setSuLast(e.target.value)}
                       required
                     />
                   </label>
                 </div>
 
-                {/* SECTION 4: Security */}
-                <div className="authSection">
-                  <div className="authSectionTitle">Security</div>
+                <label className="authLabel">
+                  Email
+                  <input
+                    className="authInput"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={suEmail}
+                    onChange={(e) => setSuEmail(e.target.value)}
+                    required
+                  />
+                </label>
 
-                  <div className="authGrid2">
-                    <label className="authLabel">
-                      Password
-                      <input
-                        className="authInput"
-                        type="password"
-                        placeholder="Create a password"
-                        value={suPass}
-                        onChange={(e) => setSuPass(e.target.value)}
-                        required
-                      />
-                    </label>
+                <label className="authLabel">
+                  Shipping Address
+                  <input
+                    className="authInput"
+                    type="text"
+                    placeholder="Cairo, Egypt"
+                    value={suAddress}
+                    onChange={(e) => setSuAddress(e.target.value)}
+                    required
+                  />
+                </label>
 
-                    <label className="authLabel">
-                      Confirm password
-                      <input
-                        className="authInput"
-                        type="password"
-                        placeholder="Repeat password"
-                        value={suPass2}
-                        onChange={(e) => setSuPass2(e.target.value)}
-                        required
-                      />
-                    </label>
-                  </div>
-                </div>
+                <label className="authLabel">
+                  Password
+                  <input
+                    className="authInput"
+                    type="password"
+                    placeholder="Create a strong password"
+                    value={suPass}
+                    onChange={(e) => setSuPass(e.target.value)}
+                    required
+                  />
+                </label>
 
                 {suErr ? <div className="authError">{suErr}</div> : null}
 
-                <button className="authBtnPrimary" type="submit">
-                  Create account
+                <button
+                  className="authBtnPrimary"
+                  type="submit"
+                  disabled={suLoading}
+                >
+                  {suLoading ? 'Creating...' : 'Create account'}
                 </button>
-
-                <p className="authHint">
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    className="authInlineBtn"
-                    onClick={switchToLogin}
-                  >
-                    Login
-                  </button>
-                </p>
               </form>
             </div>
           </section>
 
+          {/* RIGHT */}
           <aside className="authPanel authPanelRight">
             <div className="authRightInner">
-              <div className="authRightBadge">Prototype Mode</div>
+              <div className="authRightBadge">Connected to Backend</div>
 
               <h2 className="authRightTitle">
-                {isSignup ? 'Already a member?' : 'New here?'}
+                {isSignup ? 'Already have an account?' : 'New here?'}
               </h2>
               <p className="authRightSub">
                 {isSignup
-                  ? 'Switch back to login and continue.'
-                  : 'Create an account.'}
+                  ? 'Switch to login and continue shopping.'
+                  : 'Create an account and start browsing books.'}
               </p>
 
               <button
@@ -353,12 +316,12 @@ export default function LoginPage() {
                 type="button"
                 onClick={isSignup ? switchToLogin : switchToSignup}
               >
-                {isSignup ? 'Go to Login' : 'Create account'}
+                {isSignup ? 'Go to Login' : 'Go to Signup'}
               </button>
 
               <div className="authRightFooter">
-                <span className="authTiny">user: ahmed</span>
-                <span className="authTiny">pass: 1234</span>
+                <span className="authTiny">API: {API_BASE}</span>
+                <span className="authTiny">/api/auth</span>
               </div>
             </div>
           </aside>
