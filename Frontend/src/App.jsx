@@ -1,9 +1,7 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
-
+import ReportsPage from './pages/ReportsPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
-
-// TODO: replace these with your real pages
 import BooksPage from './pages/BooksPage.jsx';
 
 function Placeholder({ title }) {
@@ -35,10 +33,9 @@ export default function App() {
       {/* ✅ Admin area (with Sidebar) */}
       <Route element={<AdminLayout />}>
         <Route path="/customers" element={<Placeholder title="Customers" />} />
-
         <Route path="/books" element={<BooksPage />} />
-
         <Route path="/orders" element={<Placeholder title="Orders" />} />
+        <Route path="/reports" element={<ReportsPage />} />
       </Route>
 
       {/* Default route goes to auth */}
