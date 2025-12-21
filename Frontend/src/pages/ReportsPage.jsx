@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Search, Bell, Download, RefreshCcw, ArrowUpRight } from 'lucide-react';
 import '../Styles/ReportsPage.css';
 
@@ -79,6 +79,16 @@ export default function ReportsPage() {
   const [isbnQuery, setIsbnQuery] = useState('');
   const [ordersCount, setOrdersCount] = useState(5);
 
+  // ✅ Previous-month report state
+  const [prevMonth, setPrevMonth] = useState({
+    loading: true,
+    total_sales: 0,
+    orders_count: 0,
+    items_sold: 0,
+    error: null,
+  });
+
+  // donut percent values
   const total = topBooks.reduce((s, x) => s + x.value, 0);
   const p = topBooks.map((x) => Math.round((x.value / total) * 100));
 
@@ -90,6 +100,43 @@ export default function ReportsPage() {
     if (!isbnQuery.trim()) return;
     setOrdersCount((prev) => (prev % 9) + 1);
   }
+
+  // ✅ Fetch previous-month report (used on load + refresh)
+  async function loadPreviousMonth() {
+    try {
+      setPrevMonth((p) => ({ ...p, loading: true, error: null }));
+
+      // If you already use a proxy, you can change this to:
+      // '/api/admin/reports/sales/previous-month'
+      const res = await fetch(
+        'http://localhost:3000/api/admin/reports/sales/previous-month'
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Failed to load previous month report');
+      }
+
+      setPrevMonth({
+        loading: false,
+        total_sales: Number(data.total_sales ?? 0),
+        orders_count: Number(data.orders_count ?? 0),
+        items_sold: Number(data.items_sold ?? 0),
+        error: null,
+      });
+    } catch (e) {
+      setPrevMonth((p) => ({
+        ...p,
+        loading: false,
+        error: e.message || 'Unknown error',
+      }));
+    }
+  }
+
+  useEffect(() => {
+    loadPreviousMonth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="rpShell">
@@ -116,7 +163,14 @@ export default function ReportsPage() {
               Export CSV
             </button>
 
-            <button className="rpBtn rpBtnPrimary" type="button">
+            {/* ✅ Refresh now triggers API reload */}
+            <button
+              className="rpBtn rpBtnPrimary"
+              type="button"
+              onClick={loadPreviousMonth}
+              disabled={prevMonth.loading}
+              title={prevMonth.loading ? 'Loading...' : 'Refresh'}
+            >
               <RefreshCcw size={18} />
               Refresh
             </button>
@@ -127,13 +181,26 @@ export default function ReportsPage() {
         <div className="rpGrid">
           {/* KPI grid */}
           <div className="rpKpis">
+            {/* ✅ Previous month KPI now uses API data */}
             <KpiCard
               tone="accent"
               title="Previous Month Sales"
-              value="$6,250.00"
-              subLeft="18 orders"
-              subRight="189 items sold"
-              right="+2.08%"
+              value={
+                prevMonth.loading
+                  ? 'Loading...'
+                  : `$${prevMonth.total_sales.toFixed(2)}`
+              }
+              subLeft={
+                prevMonth.loading
+                  ? '— orders'
+                  : `${prevMonth.orders_count} orders`
+              }
+              subRight={
+                prevMonth.loading
+                  ? '— items sold'
+                  : `${prevMonth.items_sold} items sold`
+              }
+              right={prevMonth.error ? 'Error' : '+2.08%'}
             />
 
             <div className="rpCard rpKpi">

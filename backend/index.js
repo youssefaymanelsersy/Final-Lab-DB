@@ -140,6 +140,43 @@ app.get('/api/books', async (req, res) => {
     res.status(500).json({ ok: false, error: error.message });
   }
 });
+/**
+ * GET /api/admin/reports/sales/previous-month
+ *
+ * Returns:
+ * - total_sales
+ * - orders_count
+ * - items_sold
+ *
+ * We read from `sales` table using `sale_date`.
+ */
+app.get('/api/admin/reports/sales/previous-month', async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        SUM(s.amount) AS total_sales,
+        COUNT(DISTINCT s.order_id) AS orders_count,
+        SUM(s.qty) AS items_sold
+      FROM sales s
+      WHERE s.sale_date >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
+        AND s.sale_date <  DATE_FORMAT(CURDATE(), '%Y-%m-01');
+    `;
+
+    const [rows] = await pool.query(sql);
+    const row = rows[0] || {};
+
+    // Handle NULLs here (since you asked not to use COALESCE in SQL)
+    res.json({
+      ok: true,
+      range: 'previous-month',
+      total_sales: row.total_sales ?? 0,
+      orders_count: row.orders_count ?? 0,
+      items_sold: row.items_sold ?? 0,
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 
 /******************************************************************
  * Start server
