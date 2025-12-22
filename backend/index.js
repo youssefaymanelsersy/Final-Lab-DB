@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const pool = require('./db'); 
+const pool = require('./db');
 const { verifyAdmin } = require('./middleware/auth');
 
 const app = express();
@@ -31,7 +31,7 @@ app.use('/api/admin', verifyAdmin, adminRoutes);
 // Enhanced health check with database connectivity verification
 app.get('/health', async (req, res) => {
     const startTime = Date.now();
-    
+
     try {
         // Test database connection
         const [dbResult] = await pool.query('SELECT 1 AS ok, VERSION() as version, DATABASE() as db_name');
@@ -69,5 +69,5 @@ app.get('/health', async (req, res) => {
 // --------------------
 const PORT = Number(process.env.PORT || 3000);
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on http://localhost:${PORT}`);
 });
