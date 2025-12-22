@@ -1,48 +1,133 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Sidebar from './components/Sidebar.jsx';
+import { useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import OrdersPage from './pages/OrdersPage.jsx';
+// Layouts
+import AdminLayout from './layouts/AdminLayout.jsx';
+import CustomerLayout from './layouts/CustomerLayout.jsx';
 
+// Pages
 import LoginPage from './pages/LoginPage.jsx';
+import BooksPage from './pages/BooksPage.jsx'; // Admin Books
+import CustomerBooksPage from './pages/CustomerBooksPage.jsx'; // Customer Books
+import ReportsPage from './pages/ReportsPage.jsx';
 
-// TODO: replace these with your real pages
-import BooksPage from './pages/BooksPage.jsx';
-
+// Components
 function Placeholder({ title }) {
   return (
     <div style={{ padding: 24 }}>
-      <h2 style={{ margin: 0 }}>{title}</h2>
-      <p style={{ opacity: 0.7, marginTop: 8 }}>Coming soon…</p>
+      <h2>{title}</h2>
+      <p>Coming soon...</p>
     </div>
   );
 }
 
-function AdminLayout() {
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-      <div style={{ flex: 1 }}>
-        <Outlet />
-      </div>
-    </div>
-  );
-}
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 1. Check Session
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (data.ok) setUser(data.user);
+        else setUser(null);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  // 2. Global Logout Handler
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    setUser(null);
+  };
+
+  if (loading) return <div>Loading...</div>;
+
   return (
     <Routes>
-      {/* ✅ Auth page as default landing */}
-      <Route path="/auth" element={<LoginPage />} />
+      {/* --------------------- */}
+      {/* AUTH ROUTES */}
+      {/* --------------------- */}
+      <Route
+        path="/auth"
+        element={
+          !user ? (
+            <LoginPage onLogin={(u) => setUser(u)} />
+          ) : (
+            // Redirect logged-in users to their correct home
+            <Navigate
+              to={user.role === 'admin' ? '/admin/books' : '/c/books'}
+              replace
+            />
+          )
+        }
+      />
 
-      {/* ✅ Admin area (with Sidebar) */}
-      <Route element={<AdminLayout />}>
-        <Route path="/customers" element={<Placeholder title="Customers" />} />
-
-        <Route path="/books" element={<BooksPage />} />
-
-        <Route path="/orders" element={<Placeholder title="Orders" />} />
+      {/* --------------------- */}
+      {/* ADMIN ROUTES (/admin) */}
+      {/* --------------------- */}
+      <Route
+        path="/admin"
+        element={
+          user && user.role === 'admin' ? (
+            <AdminLayout onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/auth" replace />
+          )
+        }
+      >
+        <Route index element={<Navigate to="books" replace />} />
+        <Route path="books" element={<BooksPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route
+          path="customers"
+          element={<Placeholder title="Customers Management" />}
+        />
+        <Route path="orders" element={<Placeholder title="Admin Orders" />} />
       </Route>
 
-      {/* Default route goes to auth */}
-      <Route path="/" element={<Navigate to="/auth" replace />} />
+      {/* --------------------- */}
+      {/* CUSTOMER ROUTES (/c)  */}
+      {/* --------------------- */}
+      <Route
+        path="/c"
+        element={
+          user && user.role === 'customer' ? (
+            <CustomerLayout onLogout={handleLogout} />
+          ) : (
+            <Navigate to="/auth" replace />
+          )
+        }
+      >
+        <Route index element={<Navigate to="books" replace />} />
+        <Route path="books" element={<CustomerBooksPage user={user} />} />
+        <Route path="cart" element={<Placeholder title="My Cart" />} />
+        <Route path="orders" element={<Placeholder title="My Orders" />} />
+        <Route path="settings" element={<Placeholder title="Settings" />} />
+      </Route>
+
+      {/* --------------------- */}
+      {/* FALLBACK */}
+      {/* --------------------- */}
       <Route path="*" element={<Navigate to="/auth" replace />} />
     </Routes>
   );

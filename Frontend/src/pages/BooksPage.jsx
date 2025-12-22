@@ -1,123 +1,39 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { X, Save, Plus } from 'lucide-react';
 
+// Import Shared Component
+import BookCard from '../components/BookCard.jsx';
 import CategoryPicker from '../components/CategoryPicker.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
-
 import '../Styles/BooksPage.css';
 
-/**
- * Stars component (UI only)
- * - In your DB schema there is no rating field yet.
- * - So for now we show a constant rating (example: 4.5)
- * - Later, when we build reviews/ratings tables, we’ll replace this with real data.
- */
-function Stars({ value = 4.5 }) {
-  const full = Math.floor(value);
-  const half = value - full >= 0.5;
-
-  const stars = Array.from({ length: 5 }, (_, i) => {
-    if (i < full) return '★';
-    if (i === full && half) return '☆';
-    return '☆';
-  }).join('');
-
-  return <div className="bkStars">{stars}</div>;
-}
-
-/**
- * BookCard
- * IMPORTANT: this now reads from YOUR MySQL schema fields:
- * - cover_url (instead of cover)
- * - selling_price (instead of price)
- * - publisher_id exists, author does not -> we show a placeholder text.
- */
-function BookCard({ book }) {
-  // price from MySQL might come as string "200.00" (common with DECIMAL)
-  const priceNum = Number(book.selling_price || 0);
-  const stockQty = Number(book.stock_qty ?? 0);
-  const threshold = Number(book.threshold ?? 0);
-  const lowStock = stockQty <= threshold;
-
-  // if cover_url is NULL, we provide a safe fallback image
-  const coverSrc =
-    book.cover_url || 'https://via.placeholder.com/300x420.png?text=No+Cover';
-
-  // rating is not in DB yet; constant for now
-  const rating = 4.5;
-  console.log(book.title, book.cover_url);
-
-  return (
-    <div className="bkCard">
-      <div className="bkCoverWrap">
-        <img className="bkCover" src={coverSrc} alt={book.title} />
-      </div>
-
-      <div className="bkMeta">
-        <div className="bkTitle" title={book.title}>
-          {book.title}
-        </div>
-
-        {/* Publisher (placeholder until JOIN is added) */}
-        <div className="bkAuthor">Publisher #{book.publisher_id}</div>
-
-        {/* Stock info – subtle and clean */}
-        <div className="bkStock">
-          <span>In stock: {stockQty}</span>
-          {lowStock && <span className="bkLowStock"> Low stock</span>}
-        </div>
-
-        <div className="bkBottom">
-          <div className="bkRating">
-            <Stars value={rating} />
-            <span className="bkRatingNum">{rating.toFixed(1)}</span>
-          </div>
-
-          <div className="bkPrice">${priceNum.toFixed(2)}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export default function BooksPage() {
   const navigate = useNavigate();
-
-  /**
-   * UI state:
-   * - cat: which category is selected
-   * - view: grid/list toggle (UI only right now)
-   */
   const [cat, setCat] = useState('all');
   const [view, setView] = useState('grid');
-
-  /**
-   * Data state (coming from backend):
-   * - books: array from API response
-   * - loading: true while fetch is running
-   * - error: store error message if request fails
-   */
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  /**
-   * Categories MUST match your MySQL ENUM:
-   * ('Science','Art','Religion','History','Geography')
-   *
-   * We use:
-   * - id = value we store in state (and send to backend)
-   * - label = text shown in UI
-   */
-  /*
-  useMemo :Compute this value once, remember it, and only recompute it if dependencies change.
-  React re-renders A LOT
-  Every time:
-  setCat(...),setBooks(...),setLoading(...)
-  the whole BooksPage function runs again.
-  Without useMemo, this array would be recreated on every render.
-  */
+  // --- MODAL STATE ---
+  const [editingBook, setEditingBook] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newBook, setNewBook] = useState({
+    isbn: '',
+    title: '',
+    publisher_id: '',
+    publication_year: new Date().getFullYear(),
+    selling_price: '',
+    category: 'Science',
+    stock_qty: 0,
+    threshold: 5,
+    cover_url: '',
+  });
+
   const categories = useMemo(
     () => [
       { id: 'all', label: 'All Genre' },
@@ -127,88 +43,48 @@ export default function BooksPage() {
       { id: 'History', label: 'History' },
       { id: 'Geography', label: 'Geography' },
     ],
-    [] // Create this value ONCE when the component mounts, and NEVER recreate it.”
+    []
   );
 
-  /**
-   * FETCH LOGIC (the most important part)
-   *
-   * When does it run?
-   * - first page load
-   * - whenever cat changes
-   *
-   * What does it do?
-   * 1) Build the API URL
-   * 2) Call backend GET /api/books
-   * 3) Read JSON response
-   * 4) Put DB rows into state: setBooks(...)
-   */
+  const categoryOptions = [
+    'Science',
+    'Art',
+    'Religion',
+    'History',
+    'Geography',
+  ];
+
+  // --- DATA FETCHING ---
+  const loadBooks = async (signal) => {
+    setLoading(true);
+    setError('');
+    try {
+      const url = new URL(`${API_BASE}/api/books`);
+      if (cat !== 'all') url.searchParams.set('category', cat);
+      url.searchParams.set('limit', '50');
+
+      const res = await fetch(url.toString(), { signal });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const data = await res.json();
+
+      if (!data.ok) throw new Error(data.error || 'Unknown backend error');
+      setBooks(Array.isArray(data.data) ? data.data : []);
+    } catch (e) {
+      if (e.name !== 'AbortError') setError(e.message || 'Failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const controller = new AbortController();
-
-    async function loadBooks() {
-      setLoading(true);
-      setError('');
-
-      try {
-        // Build URL: base endpoint
-        const url = new URL('http://localhost:3000/api/books');
-
-        // If user selected a category (not "all"), send it to backend:
-        if (cat !== 'all') {
-          url.searchParams.set('category', cat);
-        }
-
-        // You can control pagination later; keep it simple now:
-        url.searchParams.set('limit', '50');
-        url.searchParams.set('offset', '0');
-
-        // Call backend
-        const res = await fetch(url.toString(), {
-          signal: controller.signal,
-        });
-
-        // If backend returns 500/404/etc.
-        if (!res.ok) {
-          throw new Error(`Request failed: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        // Our backend shape:
-        // { ok: true, count, limit, offset, data: [...] }
-        if (!data.ok) {
-          throw new Error(data.error || 'Unknown backend error');
-        }
-        console.log(data);
-        setBooks(Array.isArray(data.data) ? data.data : []);
-      } catch (e) {
-        // Abort is normal when user switches category quickly
-        if (e.name !== 'AbortError') {
-          setError(e.message || 'Failed to load books');
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadBooks();
-
-    // Cleanup: cancel request if component unmounts or cat changes fast
+    loadBooks(controller.signal);
     return () => controller.abort();
   }, [cat]);
 
-  /**
-   * handlePick (SearchOverlay)
-   * Your SearchOverlay currently returns a picked item.
-   * We keep your behavior:
-   * - If picked matches a category label -> update category state
-   * - If picked matches a section -> navigate
-   */
+  // --- HANDLERS ---
   const handlePick = (value) => {
     const picked = String(value || '').trim();
-
-    // 1) category click -> set category (triggers useEffect fetch)
     const matchCat = categories.find(
       (c) => c.label.toLowerCase() === picked.toLowerCase()
     );
@@ -216,31 +92,77 @@ export default function BooksPage() {
       setCat(matchCat.id);
       return;
     }
-
-    // 2) section navigation
     const key = picked.toLowerCase();
-    if (key === 'books') navigate('/books');
-    if (key === 'customers') navigate('/customers');
-    if (key === 'orders') navigate('/orders');
+    if (key === 'books') navigate('/admin/books');
+    if (key === 'customers') navigate('/admin/customers');
+    if (key === 'orders') navigate('/admin/orders');
   };
 
-  /**
-   * filtered:
-   * Since we are already filtering by category on the backend,
-   * filtered is just "books".
-   *
-   * Later, when we add search q, we can either:
-   * - filter server-side (recommended)
-   * - or filter client-side
-   */
-  const filtered = books;
+  // UPDATE Existing Book
+  const handleUpdateBook = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/books/${editingBook.isbn}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(editingBook),
+        }
+      );
+      const data = await res.json();
+
+      if (data.ok) {
+        setEditingBook(null);
+        loadBooks();
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      alert('Failed to update book');
+    }
+  };
+
+  // ADD New Book
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/books`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newBook),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        setIsAdding(false);
+        setNewBook({
+          isbn: '',
+          title: '',
+          publisher_id: '',
+          publication_year: new Date().getFullYear(),
+          selling_price: '',
+          category: 'Science',
+          stock_qty: 0,
+          threshold: 5,
+          cover_url: '',
+        });
+        loadBooks();
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      alert('Failed to add book');
+    }
+  };
 
   return (
     <div className="bkPage">
-      {/* Top row: Search + View Toggle */}
       <div className="bkTopRow">
         <SearchOverlay
-          placeholder="What are you looking for?"
+          placeholder="Admin Search..."
           shortcutHint="⌘K"
           trendingItems={categories
             .filter((c) => c.id !== 'all')
@@ -248,14 +170,44 @@ export default function BooksPage() {
           newInItems={['Books', 'Customers', 'Orders']}
           onPick={handlePick}
         />
-        <ViewToggle value={view} onChange={setView} />
+
+        {/* RIGHT SIDE GROUP: Add Button + View Toggle */}
+        <div
+          style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center',
+          }}
+        >
+          <button
+            className="btn-primary"
+            style={{
+              height: '40px',
+              padding: '0 16px',
+              whiteSpace: 'nowrap',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#4f46e5',
+              color: 'white',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onClick={() => setIsAdding(true)}
+          >
+            <Plus size={18} /> Add Book
+          </button>
+          <ViewToggle value={view} onChange={setView} />
+        </div>
       </div>
 
-      {/* Categories */}
       <div className="bkCatsRow">
         <CategoryPicker
           value={cat}
-          onChange={setCat} // triggers fetch through useEffect
+          onChange={setCat}
           items={categories}
           title="Featured Categories"
           rightLabel="All Genre"
@@ -263,27 +215,299 @@ export default function BooksPage() {
         />
       </div>
 
-      {/* Books header */}
       <div className="bkGridHead">
-        <div className="bkGridTitle">Browse books</div>
-
-        {/* Show loading / error / count */}
+        <div className="bkGridTitle">Browse books (Admin)</div>
         <div className="bkGridHint">
           {loading
             ? 'Loading...'
             : error
             ? `Error: ${error}`
-            : `${filtered.length} items`}
+            : `${books.length} items`}
         </div>
       </div>
 
-      {/* Books grid */}
       <div className="bkGrid">
-        {filtered.map((b) => (
-          // Your primary key is isbn, so key should be isbn (not id)
-          <BookCard key={b.isbn} book={b} />
+        {books.map((b) => (
+          <BookCard key={b.isbn} book={b} onEdit={setEditingBook} />
         ))}
       </div>
+
+      {/* --- EDIT MODAL --- */}
+      {editingBook && (
+        <div className="modal-overlay" onClick={() => setEditingBook(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Book</h2>
+              <button
+                className="close-btn"
+                onClick={() => setEditingBook(null)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateBook}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>ISBN (Cannot Change)</label>
+                  <input
+                    type="text"
+                    value={editingBook.isbn}
+                    disabled
+                    className="input-disabled"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    value={editingBook.title}
+                    onChange={(e) =>
+                      setEditingBook({ ...editingBook, title: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Stock Quantity</label>
+                    <input
+                      type="number"
+                      value={editingBook.stock_qty}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          stock_qty: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Threshold</label>
+                    <input
+                      type="number"
+                      value={editingBook.threshold}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          threshold: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingBook.selling_price}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          selling_price: parseFloat(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Year</label>
+                    <input
+                      type="number"
+                      value={editingBook.publication_year}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          publication_year: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setEditingBook(null)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} /> Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- ADD MODAL --- */}
+      {isAdding && (
+        <div className="modal-overlay" onClick={() => setIsAdding(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add New Book</h2>
+              <button className="close-btn" onClick={() => setIsAdding(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddBook}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>ISBN (13 Digits)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 9781234567890"
+                    value={newBook.isbn}
+                    onChange={(e) =>
+                      setNewBook({ ...newBook, isbn: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    placeholder="Book Title"
+                    value={newBook.title}
+                    onChange={(e) =>
+                      setNewBook({ ...newBook, title: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Category</label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '1px solid #d1d5db',
+                      }}
+                      value={newBook.category}
+                      onChange={(e) =>
+                        setNewBook({ ...newBook, category: e.target.value })
+                      }
+                    >
+                      {categoryOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Publisher ID</label>
+                    <input
+                      type="number"
+                      placeholder="ID"
+                      value={newBook.publisher_id}
+                      onChange={(e) =>
+                        setNewBook({ ...newBook, publisher_id: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Stock</label>
+                    <input
+                      type="number"
+                      value={newBook.stock_qty}
+                      onChange={(e) =>
+                        setNewBook({
+                          ...newBook,
+                          stock_qty: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Threshold</label>
+                    <input
+                      type="number"
+                      value={newBook.threshold}
+                      onChange={(e) =>
+                        setNewBook({
+                          ...newBook,
+                          threshold: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newBook.selling_price}
+                      onChange={(e) =>
+                        setNewBook({
+                          ...newBook,
+                          selling_price: parseFloat(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Year</label>
+                    <input
+                      type="number"
+                      value={newBook.publication_year}
+                      onChange={(e) =>
+                        setNewBook({
+                          ...newBook,
+                          publication_year: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Cover URL (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="https://..."
+                    value={newBook.cover_url}
+                    onChange={(e) =>
+                      setNewBook({ ...newBook, cover_url: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setIsAdding(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Save size={16} /> Add Book
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

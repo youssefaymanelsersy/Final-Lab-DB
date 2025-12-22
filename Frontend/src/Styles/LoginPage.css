@@ -331,3 +331,34 @@
     font-size: 30px;
   }
 }
+.authSection {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.authSectionTitle {
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.authTextarea {
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  outline: none;
+  resize: vertical;
+  transition: 200ms ease;
+}
+
+.authTextarea:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.28);
+}
