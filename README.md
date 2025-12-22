@@ -203,3 +203,18 @@ docker compose up --build
 | Tables & triggers    | `schema.sql`         |
 | App connection       | `.env`               |
 | Persistent data      | Docker volume        |
+
+## Database Access
+
+This project uses a shared TiDB Cloud database.
+
+For security reasons:
+
+* `.env` files are not committed
+
+* TLS certificates are not committed
+
+Each team member creates a local `.env` file using `.env.example`
+and receives credentials securely from the project owner.
+
+This follows standard security best practices.

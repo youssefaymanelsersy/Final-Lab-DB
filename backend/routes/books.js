@@ -24,9 +24,9 @@ router.get('/', async (req, res) => {
         // NOTE: These column names might differ in your schema.
         // We’ll adjust them after you send DESCRIBE books.
         if (q) {
-            // assumes columns: title OR isbn OR description
-            where.push(`(title LIKE ? OR isbn LIKE ? OR description LIKE ?)`);
-            params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+            // assumes columns: title OR isbn
+            where.push(`(title LIKE ? OR isbn LIKE ?)`);
+            params.push(`%${q}%`, `%${q}%`);
         }
 
         if (category) {
@@ -55,6 +55,39 @@ router.get('/', async (req, res) => {
         res.status(500).json({ ok: false, error: error.message });
     }
 });
+
+/**
+ * GET book by ISBN
+ * GET /api/books/:isbn
+ */
+router.get('/:isbn', async (req, res) => {
+    try {
+        const { isbn } = req.params;
+
+        const [rows] = await pool.query(
+            `SELECT * FROM books WHERE isbn = ?`,
+            [isbn]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Book not found',
+            });
+        }
+
+        res.json({
+            ok: true,
+            data: rows[0],
+        });
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            error: error.message,
+        });
+    }
+});
+
 
 module.exports = router;
 
