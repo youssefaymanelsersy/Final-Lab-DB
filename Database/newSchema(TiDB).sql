@@ -1,3 +1,252 @@
+-- TiDB schema for bookstore (cleaned and consistent)
+-- Creates and uses `bookstore` DB; defines tables with valid FKs; seeds minimal data
+
+CREATE DATABASE IF NOT EXISTS bookstore /*+ SET_VAR(character_set_client=utf8mb4) */;
+USE bookstore;
+
+-- =====================
+-- PUBLISHERS
+-- =====================
+CREATE TABLE IF NOT EXISTS publishers (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(120) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    phone VARCHAR(40) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_publishers_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- BOOKS
+-- =====================
+CREATE TABLE IF NOT EXISTS books (
+    isbn CHAR(13) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    publisher_id INT NOT NULL,
+    publication_year INT NOT NULL,
+    selling_price DECIMAL(10,2) NOT NULL,
+    category ENUM('Science','Art','Religion','History','Geography') NOT NULL,
+    stock_qty INT NOT NULL DEFAULT 0,
+    threshold INT NOT NULL DEFAULT 0,
+    cover_url TEXT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (isbn),
+    KEY fk_books_publisher (publisher_id),
+    CONSTRAINT fk_books_publisher FOREIGN KEY (publisher_id) REFERENCES publishers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- AUTHORS + BOOK_AUTHORS
+-- =====================
+CREATE TABLE IF NOT EXISTS authors (
+    id INT NOT NULL AUTO_INCREMENT,
+    full_name VARCHAR(120) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_authors_full_name (full_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE IF NOT EXISTS book_authors (
+    isbn CHAR(13) NOT NULL,
+    author_id INT NOT NULL,
+    PRIMARY KEY (isbn, author_id),
+    KEY fk_book_authors_author (author_id),
+    CONSTRAINT fk_book_authors_book FOREIGN KEY (isbn) REFERENCES books(isbn) ON DELETE CASCADE,
+    CONSTRAINT fk_book_authors_author FOREIGN KEY (author_id) REFERENCES authors(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- CUSTOMERS
+-- =====================
+CREATE TABLE IF NOT EXISTS customers (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(40) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(80) NOT NULL,
+    last_name VARCHAR(80) NOT NULL,
+    email VARCHAR(120) NOT NULL,
+    phone VARCHAR(40) NOT NULL,
+    shipping_address VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_customers_username (username),
+    UNIQUE KEY uq_customers_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- CARTS + CART_ITEMS
+-- =====================
+CREATE TABLE IF NOT EXISTS carts (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    customer_id BIGINT NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_carts_customer (customer_id),
+    CONSTRAINT fk_carts_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    cart_id BIGINT NOT NULL,
+    isbn CHAR(13) NOT NULL,
+    qty INT NOT NULL,
+    PRIMARY KEY (cart_id, isbn),
+    KEY fk_cart_items_isbn (isbn),
+    CONSTRAINT fk_cart_items_cart FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cart_items_book FOREIGN KEY (isbn) REFERENCES books(isbn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- ORDERS + ORDER_ITEMS
+-- =====================
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    customer_id BIGINT NOT NULL,
+    order_date TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    total_price DECIMAL(10,2) NOT NULL,
+    card_last4 CHAR(4) NOT NULL,
+    card_expiry CHAR(5) NOT NULL,
+    PRIMARY KEY (id),
+    KEY fk_orders_customer (customer_id),
+    CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+CREATE TABLE IF NOT EXISTS order_items (
+    order_id BIGINT NOT NULL,
+    isbn CHAR(13) NOT NULL,
+    book_title VARCHAR(255) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    qty INT NOT NULL,
+    PRIMARY KEY (order_id, isbn),
+    KEY fk_order_items_isbn (isbn),
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_book FOREIGN KEY (isbn) REFERENCES books(isbn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- PUBLISHER_ORDERS
+-- =====================
+CREATE TABLE IF NOT EXISTS publisher_orders (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    isbn CHAR(13) NOT NULL,
+    publisher_id INT NOT NULL,
+    order_qty INT NOT NULL,
+    status ENUM('Pending','Confirmed') NOT NULL DEFAULT 'Pending',
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY fk_publisher_orders_isbn (isbn),
+    KEY fk_publisher_orders_publisher (publisher_id),
+    CONSTRAINT fk_publisher_orders_book FOREIGN KEY (isbn) REFERENCES books(isbn),
+    CONSTRAINT fk_publisher_orders_publisher FOREIGN KEY (publisher_id) REFERENCES publishers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- SALES (for reporting)
+-- =====================
+CREATE TABLE IF NOT EXISTS sales (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    isbn CHAR(13) NOT NULL,
+    qty INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    sale_date TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY fk_sales_order (order_id),
+    KEY fk_sales_isbn (isbn),
+    CONSTRAINT fk_sales_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sales_book FOREIGN KEY (isbn) REFERENCES books(isbn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- =====================
+-- SEED DATA (minimal, valid)
+-- =====================
+
+-- Publishers
+INSERT INTO publishers (name, address, phone) VALUES
+('Bantam Books','New York, USA','+1-212-000-0000'),
+('Phaidon Press','London, UK','+44-20-0000-0000'),
+('HarperCollins','New York, USA','+1-212-111-1111'),
+('Oxford University Press','Oxford, UK','+44-1865-000000'),
+('Penguin Books','London, UK','+44-20-2222-2222')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Books
+INSERT INTO books (isbn, title, publisher_id, publication_year, selling_price, category, stock_qty, threshold, cover_url) VALUES
+('9780553380163','A Brief History of Time',1,1998,220.00,'Science',25,8,'https://covers.openlibrary.org/b/isbn/9780553380163-L.jpg'),
+('9780714832470','The Story of Art',2,1995,250.00,'Art',12,5,'https://covers.openlibrary.org/b/isbn/9780714832470-L.jpg'),
+('9780062316097','Sapiens: A Brief History of Humankind',3,2015,210.00,'History',9,6,'https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg'),
+('9780192802385','A History of God',4,1994,190.00,'Religion',20,7,'https://covers.openlibrary.org/b/isbn/9780192802385-L.jpg'),
+('9781783962433','Prisoners of Geography',5,2016,200.00,'Geography',10,6,'https://covers.openlibrary.org/b/isbn/9781783962433-L.jpg')
+ON DUPLICATE KEY UPDATE title=VALUES(title), selling_price=VALUES(selling_price);
+
+-- Authors
+INSERT INTO authors (full_name) VALUES
+('Stephen Hawking'),
+('E. H. Gombrich'),
+('Yuval Noah Harari'),
+('Karen Armstrong'),
+('Tim Marshall')
+ON DUPLICATE KEY UPDATE full_name=VALUES(full_name);
+
+-- Link authors to books
+INSERT INTO book_authors (isbn, author_id)
+SELECT '9780553380163', id FROM authors WHERE full_name='Stephen Hawking'
+ON DUPLICATE KEY UPDATE author_id=author_id;
+INSERT INTO book_authors (isbn, author_id)
+SELECT '9780714832470', id FROM authors WHERE full_name='E. H. Gombrich'
+ON DUPLICATE KEY UPDATE author_id=author_id;
+INSERT INTO book_authors (isbn, author_id)
+SELECT '9780062316097', id FROM authors WHERE full_name='Yuval Noah Harari'
+ON DUPLICATE KEY UPDATE author_id=author_id;
+INSERT INTO book_authors (isbn, author_id)
+SELECT '9780192802385', id FROM authors WHERE full_name='Karen Armstrong'
+ON DUPLICATE KEY UPDATE author_id=author_id;
+INSERT INTO book_authors (isbn, author_id)
+SELECT '9781783962433', id FROM authors WHERE full_name='Tim Marshall'
+ON DUPLICATE KEY UPDATE author_id=author_id;
+
+-- Customers (example accounts)
+INSERT INTO customers (username, password_hash, first_name, last_name, email, phone, shipping_address) VALUES
+('youssef99','$2y$dummyhash1','Youssef','Ayman','youssef@example.com','+20-100-000-0001','Cairo, Egypt'),
+('sara88','$2y$dummyhash2','Sara','Hassan','sara@example.com','+20-100-000-0002','Alexandria, Egypt')
+ON DUPLICATE KEY UPDATE email=VALUES(email);
+
+-- Carts for sample customers
+INSERT INTO carts (customer_id)
+SELECT id FROM customers WHERE username='youssef99'
+ON DUPLICATE KEY UPDATE customer_id=customer_id;
+INSERT INTO carts (customer_id)
+SELECT id FROM customers WHERE username='sara88'
+ON DUPLICATE KEY UPDATE customer_id=customer_id;
+
+-- =====================
+-- Seed a couple of November 2025 orders for admin reports
+-- =====================
+-- Order for youssef99 on 2025-11-10
+INSERT INTO orders (customer_id, order_date, total_price, card_last4, card_expiry)
+SELECT id, '2025-11-10 12:00:00', 680.00, '1234', '12/27' FROM customers WHERE username='youssef99'
+ON DUPLICATE KEY UPDATE total_price=VALUES(total_price);
+
+-- Find order id
+SET @oid1 := (SELECT o.id FROM orders o JOIN customers c ON c.id=o.customer_id WHERE c.username='youssef99' AND o.order_date='2025-11-10 12:00:00' LIMIT 1);
+INSERT INTO order_items (order_id, isbn, book_title, unit_price, qty) VALUES
+(@oid1,'9780062316097','Sapiens: A Brief History of Humankind',210.00,2),
+(@oid1,'9780141036137','The Art Book',260.00,1)
+ON DUPLICATE KEY UPDATE qty=VALUES(qty);
+INSERT INTO sales (order_id, isbn, qty, amount, sale_date) VALUES
+(@oid1,'9780062316097',2,420.00,'2025-11-10 12:05:00'),
+(@oid1,'9780141036137',1,260.00,'2025-11-10 12:05:00');
+
+-- Order for sara88 on 2025-11-20
+INSERT INTO orders (customer_id, order_date, total_price, card_last4, card_expiry)
+SELECT id, '2025-11-20 16:30:00', 450.00, '5678', '08/26' FROM customers WHERE username='sara88'
+ON DUPLICATE KEY UPDATE total_price=VALUES(total_price);
+SET @oid2 := (SELECT o.id FROM orders o JOIN customers c ON c.id=o.customer_id WHERE c.username='sara88' AND o.order_date='2025-11-20 16:30:00' LIMIT 1);
+INSERT INTO order_items (order_id, isbn, book_title, unit_price, qty) VALUES
+(@oid2,'9780140449334','Meditations',150.00,3)
+ON DUPLICATE KEY UPDATE qty=VALUES(qty);
+INSERT INTO sales (order_id, isbn, qty, amount, sale_date) VALUES
+(@oid2,'9780140449334',3,450.00,'2025-11-20 16:35:00');
+
 /*!40014 SET FOREIGN_KEY_CHECKS=0*/
 ;
 /*!40101 SET NAMES binary*/
