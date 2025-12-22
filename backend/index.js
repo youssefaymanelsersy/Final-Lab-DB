@@ -2,28 +2,18 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db');
-const cookieParser = require('cookie-parser'); // Import this
+const cookieParser = require('cookie-parser');
+const pool = require('./db'); 
+const { verifyAdmin } = require('./middleware/auth');
 
 const app = express();
 
-// --------------------
-// Middleware
-// --------------------
-
-// 1. COOKIE PARSER (Must be before routes)
-app.use(cookieParser());
-
-// 2. CORS (Must be specific for cookies to work)
-app.use(
-  cors({
-    origin: 'http://localhost:5173', // <--- REPLACE THIS if your React runs on a different port
-    credentials: true, // <--- THIS IS THE KEY FIX
-  })
-);
-
-// 3. JSON Parser
 app.use(express.json());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true
+}));
+app.use(cookieParser());
 
 // --------------------
 // Routes
@@ -36,25 +26,42 @@ const adminRoutes = require('./routes/admin');
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/books', bookRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', verifyAdmin, adminRoutes);
 
-// --------------------
-// Health checks
-// --------------------
-app.get('/health', (req, res) => {
-  res.json({
-    ok: true,
-    message: 'Server is running',
-  });
-});
+// Enhanced health check with database connectivity verification
+app.get('/health', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        // Test database connection
+        const [dbResult] = await pool.query('SELECT 1 AS ok, VERSION() as version, DATABASE() as db_name');
+        const dbLatency = Date.now() - startTime;
 
-app.get('/db-test', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT 1 AS ok');
-    res.json({ ok: true, result: rows });
-  } catch (error) {
-    res.status(500).json({ ok: false, error: error.message });
-  }
+        res.json({
+            ok: true,
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            database: {
+                connected: true,
+                latency_ms: dbLatency,
+                version: dbResult[0].version,
+                name: dbResult[0].db_name
+            },
+            environment: process.env.NODE_ENV || 'development'
+        });
+    } catch (error) {
+        res.status(503).json({
+            ok: false,
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            database: {
+                connected: false,
+                error: error.message
+            }
+        });
+    }
 });
 
 // --------------------
