@@ -415,4 +415,68 @@ router.post('/publisher-orders', async (req, res) => {
     res.status(500).json({ ok: false, error: error.message });
   }
 });
+/**
+ * PUT /books/:isbn
+ * Update book details (Admin Only)
+ */
+router.put('/books/:isbn', async (req, res) => {
+  try {
+    const { isbn } = req.params;
+    const {
+      title,
+      publisher_id,
+      publication_year,
+      selling_price,
+      category,
+      stock_qty,
+      threshold,
+      cover_url,
+    } = req.body;
+
+    // Validation: Ensure stock doesn't go negative manually (Trigger also protects this)
+    if (stock_qty < 0) {
+      return res
+        .status(400)
+        .json({ ok: false, error: 'Stock quantity cannot be negative' });
+    }
+
+    const sql = `
+            UPDATE books 
+            SET 
+                title = ?, 
+                publisher_id = ?, 
+                publication_year = ?, 
+                selling_price = ?, 
+                category = ?, 
+                stock_qty = ?, 
+                threshold = ?, 
+                cover_url = ?
+            WHERE isbn = ?
+        `;
+
+    const [result] = await pool.query(sql, [
+      title,
+      publisher_id,
+      publication_year,
+      selling_price,
+      category,
+      stock_qty,
+      threshold,
+      cover_url,
+      isbn,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, error: 'Book not found' });
+    }
+
+    res.json({ ok: true, message: 'Book updated successfully' });
+  } catch (error) {
+    // Capture Trigger Error (SQL State 45000)
+    if (error.sqlState === '45000') {
+      return res.status(400).json({ ok: false, error: error.message });
+    }
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
 module.exports = router;

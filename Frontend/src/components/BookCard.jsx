@@ -1,7 +1,13 @@
-import { Star, ShoppingBag, Minus, Plus } from 'lucide-react';
+import { Star, ShoppingBag, Minus, Plus, Pencil } from 'lucide-react';
 import '../Styles/BooksPage.css';
 
-export default function BookCard({ book, qtyInCart = 0, onAddOne, onSetQty }) {
+export default function BookCard({
+  book,
+  qtyInCart = 0,
+  onAddOne,
+  onSetQty,
+  onEdit,
+}) {
   const isCustomer = typeof onAddOne === 'function';
   const coverSrc =
     book.cover_url || 'https://via.placeholder.com/300x420?text=No+Cover';
@@ -10,7 +16,12 @@ export default function BookCard({ book, qtyInCart = 0, onAddOne, onSetQty }) {
 
   // Stock Logic
   const inStock = book.stock_qty > 0;
-  const isLowStock = !isCustomer && book.stock_qty <= (book.threshold || 5);
+  // Threshold logic: use book.threshold if valid, else default to 5
+  const threshold =
+    book.threshold !== undefined && book.threshold !== null
+      ? book.threshold
+      : 5;
+  const isLowStock = !isCustomer && book.stock_qty <= threshold;
 
   return (
     <div className="bkCard">
@@ -32,7 +43,14 @@ export default function BookCard({ book, qtyInCart = 0, onAddOne, onSetQty }) {
         {/* Stock Status */}
         <div className="bkStock">
           {!isCustomer ? (
-            <span>Stock: {book.stock_qty}</span>
+            <span
+              style={{
+                color: isLowStock ? '#ef4444' : 'inherit',
+                fontWeight: isLowStock ? 600 : 400,
+              }}
+            >
+              Stock: {book.stock_qty} (Min: {threshold})
+            </span>
           ) : (
             <span
               style={{
@@ -53,10 +71,11 @@ export default function BookCard({ book, qtyInCart = 0, onAddOne, onSetQty }) {
           </div>
         </div>
 
-        {/* --- MODERN CART ACTIONS --- */}
-        {isCustomer && (
-          <div className="bkActions">
-            {qtyInCart === 0 ? (
+        {/* --- ACTIONS --- */}
+        <div className="bkActions">
+          {isCustomer ? (
+            // CUSTOMER ACTIONS
+            qtyInCart === 0 ? (
               <button
                 className="bkBtnAdd"
                 onClick={onAddOne}
@@ -86,9 +105,17 @@ export default function BookCard({ book, qtyInCart = 0, onAddOne, onSetQty }) {
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
               </div>
-            )}
-          </div>
-        )}
+            )
+          ) : (
+            // ADMIN ACTIONS
+            <button
+              className="bkBtnEdit"
+              onClick={() => onEdit && onEdit(book)}
+            >
+              <Pencil size={14} /> Edit Details
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
