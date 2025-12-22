@@ -33,15 +33,17 @@ export default function CustomerBooksPage({ user }) {
     []
   );
 
-  async function loadBooks(signal) {
+  async function loadBooks() {
     setLoading(true);
     setError('');
     try {
-      const url = new URL(`${API_BASE}/api/books`);
-      if (cat !== 'all') url.searchParams.set('category', cat);
-      url.searchParams.set('limit', '50');
-
-      const res = await fetch(url.toString(), { signal });
+      const res = await fetch(`${API_BASE}/api/books`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 50, ...(cat !== 'all' && { category: cat }) }),
+        credentials: 'include'
+      });
+      
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to load');
 

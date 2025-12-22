@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Search, Bell, Download, RefreshCcw, ArrowUpRight } from 'lucide-react';
 import '../Styles/ReportsPage.css';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
 function KpiCard({ tone = 'plain', title, value, subLeft, subRight, right }) {
   return (
     <div className={`rpCard rpKpi rpKpi--${tone}`}>
@@ -48,7 +50,10 @@ export default function ReportsPage() {
       setTopBooksState((p) => ({ ...p, loading: true, error: null }));
 
       const res = await fetch(
-        `http://localhost:3000/api/admin/reports/top-books?months=${months}&limit=${limit}`
+        `${API_BASE}/api/admin/reports/top-books?months=${months}&limit=${limit}`,
+        {
+          credentials: 'include'
+        }
       );
       const data = await res.json();
 
@@ -88,9 +93,12 @@ export default function ReportsPage() {
       setSalesByDay((p) => ({ ...p, loading: true, error: null }));
 
       const res = await fetch(
-        `http://localhost:3000/api/admin/reports/sales/by-day?date=${encodeURIComponent(
+        `${API_BASE}/api/admin/reports/sales/by-day?date=${encodeURIComponent(
           day
-        )}`
+        )}`,
+        {
+          credentials: 'include'
+        }
       );
       const data = await res.json();
 
@@ -129,7 +137,10 @@ export default function ReportsPage() {
       setPrevMonth((p) => ({ ...p, loading: true, error: null }));
 
       const res = await fetch(
-        'http://localhost:3000/api/admin/reports/sales/previous-month'
+        `${API_BASE}/api/admin/reports/sales/previous-month`,
+        {
+          credentials: 'include'
+        }
       );
       const data = await res.json();
 
@@ -175,7 +186,10 @@ export default function ReportsPage() {
       }));
 
       const res = await fetch(
-        `http://localhost:3000/api/admin/reports/top-customers?months=${months}&limit=${limit}`
+        `${API_BASE}/api/admin/reports/top-customers?months=${months}&limit=${limit}`,
+        {
+          credentials: 'include'
+        }
       );
       const data = await res.json();
 
@@ -220,9 +234,12 @@ export default function ReportsPage() {
       setBookOrders((p) => ({ ...p, loading: true, error: null }));
 
       const res = await fetch(
-        `http://localhost:3000/api/admin/reports/book-orders-count?q=${encodeURIComponent(
+        `${API_BASE}/api/admin/reports/book-orders-count?q=${encodeURIComponent(
           q
-        )}`
+        )}`,
+        {
+          credentials: 'include'
+        }
       );
       const data = await res.json();
 
