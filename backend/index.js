@@ -3,7 +3,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const pool = require('./db');
 const { verifyAdmin } = require('./middleware/auth');
 
 const app = express();
@@ -18,17 +17,14 @@ app.use(cookieParser());
 // --------------------
 // Routes
 // --------------------
+const pool = require('./db');
 const bookRoutes = require('./routes/books');
-const customerProfileRoutes = require('./routes/customers/profile');
-const customerCartRoutes = require('./routes/customers/cart');
-const customerOrdersRoutes = require('./routes/customers/orders');
+const customerRoutes = require('./routes/customers');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerProfileRoutes);
-app.use('/api/customers', customerCartRoutes);
-app.use('/api/customers', customerOrdersRoutes);
+app.use('/api/customers', customerRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/admin', verifyAdmin, adminRoutes);
 

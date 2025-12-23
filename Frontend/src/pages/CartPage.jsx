@@ -26,7 +26,10 @@ export default function CartPage({ user }) {
   const formatMoney = (n) => {
     const v = typeof n === 'number' ? n : parseFloat(n);
     const safe = Number.isFinite(v) ? v : 0;
-    return safe.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return safe.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   const normalizeItems = (data) => {
@@ -61,7 +64,8 @@ export default function CartPage({ user }) {
         signal,
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data?.error || 'Failed to load cart');
+      if (!res.ok || !data.ok)
+        throw new Error(data?.error || 'Failed to load cart');
       setItems(normalizeItems(data));
     } catch (e) {
       if (e.name !== 'AbortError') setError(e.message || 'Failed');
@@ -79,11 +83,7 @@ export default function CartPage({ user }) {
 
   const getQty = (isbn) => items.find((x) => x.isbn === isbn)?.qty || 0;
 
-  // Cart endpoints:
-  // POST   /api/customers/:id/cart { isbn, qty }  (adds/increments)
-  // DELETE /api/customers/:id/cart/:isbn         (removes)
-  //
-  // To set exact qty: delete then re-add desired qty
+  // POST /api/customers/:id/cart { isbn, qty } (increment)
   const addOne = async (isbn) => {
     if (!customerId) return;
     setBusyIsbn(isbn);
@@ -107,6 +107,7 @@ export default function CartPage({ user }) {
     }
   };
 
+  // To set exact qty: delete then re-add desired qty
   const setExactQty = async (isbn, qty) => {
     if (!customerId) return;
     const nextQty = Math.max(0, Number(qty || 0));
@@ -120,14 +121,18 @@ export default function CartPage({ user }) {
       });
 
       if (nextQty > 0) {
-        const res = await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ isbn, qty: nextQty }),
-        });
+        const res = await fetch(
+          `${API_BASE}/api/customers/${customerId}/cart`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ isbn, qty: nextQty }),
+          }
+        );
         const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data?.error || 'Failed to update qty');
+        if (!res.ok || !data.ok)
+          throw new Error(data?.error || 'Failed to update qty');
       }
 
       const ctrl = new AbortController();
@@ -176,8 +181,10 @@ export default function CartPage({ user }) {
     const digits = cardNumber.replace(/\D/g, '');
 
     if (digits.length < 12) return setError('Enter a valid card number');
-    if (!/^\d{3,4}$/.test(cardCvv)) return setError('CVV must be 3 or 4 digits');
-    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) return setError('Expiry must be MM/YY (example 05/27)');
+    if (!/^\d{3,4}$/.test(cardCvv))
+      return setError('CVV must be 3 or 4 digits');
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry))
+      return setError('Expiry must be MM/YY (example 05/27)');
 
     const payload = {
       payment_method: 'visa',
@@ -190,14 +197,18 @@ export default function CartPage({ user }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/customers/${customerId}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${API_BASE}/api/customers/${customerId}/checkout`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data?.error || 'Checkout failed');
+      if (!res.ok || !data.ok)
+        throw new Error(data?.error || 'Checkout failed');
 
       setSuccess('Order placed successfully ✅');
 
@@ -221,7 +232,12 @@ export default function CartPage({ user }) {
           <button className="btn-primary" onClick={() => navigate('/c/books')}>
             Continue shopping
           </button>
-          <button className="btn-danger" onClick={clearCart} disabled={loading || isEmpty}>
+
+          <button
+            className="btn-danger"
+            onClick={clearCart}
+            disabled={loading || isEmpty}
+          >
             <Trash2 size={16} /> Clear cart
           </button>
         </div>
@@ -230,7 +246,11 @@ export default function CartPage({ user }) {
       <div className="bkGridHead">
         <div className="bkGridTitle">My Cart</div>
         <div className="bkGridHint">
-          {loading ? 'Loading...' : error ? `Error: ${error}` : `${items.length} items`}
+          {loading
+            ? 'Loading...'
+            : error
+            ? `Error: ${error}`
+            : `${items.length} items`}
         </div>
       </div>
 
@@ -250,8 +270,13 @@ export default function CartPage({ user }) {
           {isEmpty && !loading ? (
             <div className="ctEmpty">
               <div className="ctEmptyTitle">Your cart is empty</div>
-              <div className="ctEmptySub">Browse books and add what you like.</div>
-              <button className="btn-primary" onClick={() => navigate('/c/books')}>
+              <div className="ctEmptySub">
+                Browse books and add what you like.
+              </div>
+              <button
+                className="btn-primary"
+                onClick={() => navigate('/c/books')}
+              >
                 Browse books <ArrowRight size={16} />
               </button>
             </div>
@@ -263,28 +288,55 @@ export default function CartPage({ user }) {
                 const qty = parseInt(it.qty ?? 0, 10);
                 const line = lineTotal(it);
 
+                const coverSrc =
+                  it.cover_url ||
+                  'https://via.placeholder.com/120x160?text=No+Cover';
+
                 return (
                   <div className="ctItem" key={it.isbn}>
-                    <div className="ctItemMain">
-                      <div className="ctItemTitle">{it.title}</div>
-                      <div className="ctItemMeta">
-                        ISBN: {it.isbn} • Price: {formatMoney(price)}
+                    <div className="ctItemLeft">
+                      <div className="ctCoverWrap">
+                        <img
+                          className="ctCover"
+                          src={coverSrc}
+                          alt={it.title}
+                          loading="lazy"
+                        />
+                      </div>
+
+                      <div className="ctItemMain">
+                        <div className="ctItemTitle">{it.title}</div>
+                        <div className="ctItemMeta">
+                          ISBN: {it.isbn} • Price: {formatMoney(price)}
+                        </div>
                       </div>
                     </div>
 
                     <div className="ctQty">
-                      <button className="ctQtyBtn" onClick={() => minusOne(it.isbn)} disabled={busy}>
+                      <button
+                        className="ctQtyBtn"
+                        onClick={() => minusOne(it.isbn)}
+                        disabled={busy}
+                      >
                         <Minus size={16} />
                       </button>
                       <div className="ctQtyVal">{qty}</div>
-                      <button className="ctQtyBtn" onClick={() => addOne(it.isbn)} disabled={busy}>
+                      <button
+                        className="ctQtyBtn"
+                        onClick={() => addOne(it.isbn)}
+                        disabled={busy}
+                      >
                         <Plus size={16} />
                       </button>
                     </div>
 
                     <div className="ctLineTotal">{formatMoney(line)}</div>
 
-                    <button className="ctRemove" onClick={() => removeItem(it.isbn)} disabled={busy}>
+                    <button
+                      className="ctRemove"
+                      onClick={() => removeItem(it.isbn)}
+                      disabled={busy}
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -311,7 +363,9 @@ export default function CartPage({ user }) {
             <label>Card Number</label>
             <input
               value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 19))}
+              onChange={(e) =>
+                setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 19))
+              }
               placeholder="1234-5678-9012-3456"
               inputMode="numeric"
             />
@@ -321,7 +375,9 @@ export default function CartPage({ user }) {
             <label>CVV</label>
             <input
               value={cardCvv}
-              onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              onChange={(e) =>
+                setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))
+              }
               placeholder="667"
               inputMode="numeric"
             />
@@ -336,7 +392,11 @@ export default function CartPage({ user }) {
             />
           </div>
 
-          <button className="btn-primary ctCheckoutBtn" onClick={checkout} disabled={loading || isEmpty}>
+          <button
+            className="btn-primary ctCheckoutBtn"
+            onClick={checkout}
+            disabled={loading || isEmpty}
+          >
             Checkout <ArrowRight size={16} />
           </button>
 
