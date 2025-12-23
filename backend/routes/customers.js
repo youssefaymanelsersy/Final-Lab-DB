@@ -31,7 +31,7 @@ router.get('/:id', verifyCustomer, async (req, res) => {
 
         const [[row]] = await pool.query(
             `SELECT id, username, first_name, last_name, email, phone, shipping_address
-             FROM customers WHERE id=? LIMIT 1`,
+            FROM customers WHERE id=? LIMIT 1`,
             [id]
         );
 
@@ -327,15 +327,22 @@ router.post('/:id/checkout', verifyCustomer, async (req, res) => {
             );
             const newStock = updatedBook.stock_qty;
 
-            // Auto-replenish replacement for MySQL trigger
+            // Auto-replenish replacement for MySQL trigger (dedupe pending orders)
             if (newStock < item.threshold) {
-                await conn.query(
-                    `
-                INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
-                VALUES (?, ?, ?, 'Pending')
-                `,
-                    [item.isbn, item.publisher_id, item.threshold * 3]
+                const [[existingPending]] = await conn.query(
+                    `SELECT id FROM publisher_orders WHERE isbn = ? AND status = 'Pending' LIMIT 1`,
+                    [item.isbn]
                 );
+
+                if (!existingPending) {
+                    await conn.query(
+                        `
+                    INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
+                    VALUES (?, ?, ?, 'Pending')
+                    `,
+                        [item.isbn, item.publisher_id, item.threshold * 3]
+                    );
+                }
             }
         }
 
@@ -375,7 +382,7 @@ router.get('/:id/orders', verifyCustomer, async (req, res) => {
         const orderIds = orders.map((o) => o.id);
         const [items] = await pool.query(
             `SELECT order_id, isbn, book_title, unit_price, qty
-             FROM order_items WHERE order_id IN (?)`,
+            FROM order_items WHERE order_id IN (?)`,
             [orderIds]
         );
 
