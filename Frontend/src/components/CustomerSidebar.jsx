@@ -1,52 +1,74 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  BookOpen,
+  ShoppingCart,
+  Receipt,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 import '../Styles/Sidebar.css';
-import { Library, ShoppingCart, Receipt, Settings, LogOut } from 'lucide-react';
 
-const navItems = [
-  { to: '/c/books', label: 'Books', icon: Library },
-  { to: '/c/cart', label: 'Cart', icon: ShoppingCart },
-  { to: '/c/orders', label: 'My Orders', icon: Receipt },
-  { to: '/c/settings', label: 'Settings', icon: Settings },
-];
+export default function CustomerSidebar({ user, onLogout }) {
+  const navigate = useNavigate();
 
-export default function CustomerSidebar({ onLogout }) {
+  const initials = String(
+    user?.first_name?.[0] || user?.username?.[0] || 'C'
+  ).toUpperCase();
+
+  async function handleLogoutClick() {
+    if (onLogout) await onLogout();
+    navigate('/auth', { replace: true });
+  }
+
   return (
     <aside className="sidebar">
       <div className="sbBrand">
         <div className="sbMark" />
-        <div className="sbBrandText">
+        <div>
           <div className="sbName">BookStore</div>
-          <div className="sbSub">Customer</div>
+          <div className="sbSub">Customer Portal</div>
         </div>
       </div>
 
       <nav className="sbNav">
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) => 'sbItem ' + (isActive ? 'active' : '')}
-          >
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        <NavLink to="/c/books" className="sbItem">
+          <BookOpen size={18} />
+          Books
+        </NavLink>
+
+        <NavLink to="/c/cart" className="sbItem">
+          <ShoppingCart size={18} />
+          Cart
+        </NavLink>
+
+        <NavLink to="/c/orders" className="sbItem">
+          <Receipt size={18} />
+          My Orders
+        </NavLink>
+
+        <NavLink to="/c/settings" className="sbItem">
+          <Settings size={18} />
+          Settings
+        </NavLink>
       </nav>
 
       <div className="sbBottom">
-        {/* Use the prop passed from App.jsx */}
-        <button className="sbGhost" type="button" onClick={onLogout}>
-          <LogOut size={18} />
-          <span>Logout</span>
-        </button>
-
         <div className="sbMe">
-          <div className="sbAvatar">CU</div>
-          <div className="sbMeMeta">
-            <div className="sbMeName">Customer</div>
-            <div className="sbMeRole">Shopping</div>
+          <div className="sbAvatar">{initials}</div>
+          <div>
+            <div className="sbMeName">
+              {user?.first_name
+                ? `${user.first_name} ${user?.last_name || ''}`.trim()
+                : user?.username || 'Customer'}
+            </div>
+            <div className="sbMeRole">customer</div>
           </div>
         </div>
+
+        <button className="sbGhost" type="button" onClick={handleLogoutClick}>
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
     </aside>
   );
