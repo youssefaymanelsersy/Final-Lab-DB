@@ -32,24 +32,14 @@ export default function MyOrders() {
     }
   };
 
-  const openReceipt = async (order) => {
-    setSelectedOrder(order);
-    setLoadingDetails(true);
-    
-    try {
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}/orders/${order.id}`, {
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setOrderDetails(data.items);
-      }
-    } catch (error) {
-      console.error('Failed to load order details:', error);
-    } finally {
-      setLoadingDetails(false);
-    }
-  };
+const openReceipt = (order) => {
+  setSelectedOrder(order);
+  setOrderDetails(order.items || []);
+  setLoadingDetails(false);
+
+  console.log('ORDER ITEMS:', order.items);
+};
+
 
   const closeReceipt = () => {
     setSelectedOrder(null);
