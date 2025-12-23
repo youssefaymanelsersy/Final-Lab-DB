@@ -69,7 +69,7 @@ router.post('/signup', async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
     const [result] = await pool.query(
       `INSERT INTO customers (username, password_hash, first_name, last_name, email, phone, shipping_address)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         username,
         password_hash,
