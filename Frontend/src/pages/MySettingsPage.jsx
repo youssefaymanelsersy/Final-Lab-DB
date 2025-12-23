@@ -193,11 +193,11 @@ export default function MySettingsPage({ user }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      setMessage({ type: 'error', text: 'Avatar must be JPG or PNG.' });
-      e.target.value = '';
-      return;
-    }
+    // if (!['image/jpeg', 'image/png'].includes(file.type)) {
+    //   setMessage({ type: 'error', text: 'Avatar must be JPG or PNG.' });
+    //   e.target.value = '';
+    //   return;
+    // }
     if (file.size > 2 * 1024 * 1024) {
       setMessage({ type: 'error', text: 'Max avatar size is 2MB.' });
       e.target.value = '';
@@ -286,9 +286,9 @@ export default function MySettingsPage({ user }) {
               </div>
 
               <div className="msAvatarInfo">
-                <div className="msAvatarTitle">Change avatar</div>
+                 <div className="msTiny">Camera button opens the picker.</div>
                 <div className="msSub">JPG or PNG. Max size 2MB.</div>
-                <div className="msTiny">Camera button opens the picker.</div>
+                <div>Upload</div>
               </div>
             </div>
           </div>
