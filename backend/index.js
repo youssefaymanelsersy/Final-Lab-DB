@@ -19,12 +19,16 @@ app.use(cookieParser());
 // Routes
 // --------------------
 const bookRoutes = require('./routes/books');
-const customerRoutes = require('./routes/customers');
+const customerProfileRoutes = require('./routes/customers/profile');
+const customerCartRoutes = require('./routes/customers/cart');
+const customerOrdersRoutes = require('./routes/customers/orders');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
+app.use('/api/customers', customerProfileRoutes);
+app.use('/api/customers', customerCartRoutes);
+app.use('/api/customers', customerOrdersRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/admin', verifyAdmin, adminRoutes);
 
