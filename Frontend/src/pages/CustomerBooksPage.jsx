@@ -4,11 +4,13 @@ import SearchOverlay from '../components/SearchOverlay.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
 import BookCard from '../components/BookCard.jsx';
 import '../Styles/BooksPage.css';
+import {useOutletContext} from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 // 1. Accept the 'user' prop from App.jsx
-export default function CustomerBooksPage({ user }) {
+export default function CustomerBooksPage() {
+  const { user } = useOutletContext();
   // 2. Get Customer ID directly from the user object (Safe & Reactive)
   const customerId = user?.id;
 

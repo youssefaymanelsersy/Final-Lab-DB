@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import {useOutletContext} from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Lock, Save, AlertCircle, CheckCircle, Camera, Calendar, Activity } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
-export default function CustomerInfo({ user }) {
+export default function CustomerInfo() {
+   
+  const { user } = useOutletContext();
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading user...</p>
+      </div>
+    );
+  }
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
@@ -33,6 +44,8 @@ export default function CustomerInfo({ user }) {
   }, [user]);
 
   const fetchProfile = async () => {
+    if (!user?.id) return;
+
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE}/api/customers/${user.id}`, {

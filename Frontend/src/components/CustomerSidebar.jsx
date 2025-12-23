@@ -1,15 +1,15 @@
 import { NavLink } from 'react-router-dom';
 import '../Styles/Sidebar.css';
-import { Library, ShoppingCart, Receipt, Settings, LogOut } from 'lucide-react';
+import { Library, ShoppingCart, Receipt, LogOut, User } from 'lucide-react';
 
 const navItems = [
   { to: '/c/books', label: 'Books', icon: Library },
   { to: '/c/cart', label: 'Cart', icon: ShoppingCart },
-  { to: '/c/orders', label: 'My Orders', icon: Receipt },
-  { to: '/c/profile', label: 'Settings', icon: Settings },
+   { to: '/c/orders', label: 'My Orders', icon: Receipt },
+   { to: '/c/profile', label: 'profile', icon: User },
 ];
 
-export default function CustomerSidebar({ onLogout }) {
+export default function CustomerSidebar({ onLogout ,user})  {
   return (
     <aside className="sidebar">
       <div className="sbBrand">
@@ -34,19 +34,19 @@ export default function CustomerSidebar({ onLogout }) {
       </nav>
 
       <div className="sbBottom">
-        {/* Use the prop passed from App.jsx */}
+     
         <button className="sbGhost" type="button" onClick={onLogout}>
           <LogOut size={18} />
           <span>Logout</span>
         </button>
 
-        <div className="sbMe">
+        <NavLink to="/c/profile" className="sbMe">
           <div className="sbAvatar">CU</div>
           <div className="sbMeMeta">
             <div className="sbMeName">Customer</div>
             <div className="sbMeRole">Shopping</div>
           </div>
-        </div>
+        </NavLink>
       </div>
     </aside>
   );

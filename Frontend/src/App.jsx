@@ -113,27 +113,21 @@ export default function App() {
       {/* CUSTOMER ROUTES (/c)  */}
       {/* --------------------- */}
       <Route
-        path="/c"
-        element={
-          user && user.role === 'customer' ? (
-            <CustomerLayout onLogout={handleLogout} />
-          ) : (
-            <Navigate to="/auth" replace />
-          )
-        }
-      >
-        <Route index element={<Navigate to="books" replace />} />
-        <Route path="books" element={<CustomerBooksPage user={user} />} />
-        <Route path="cart" element={<Placeholder title="My Cart" />} />
-        
-        {/* ✅ CUSTOMER ORDER HISTORY PAGE */}
-        <Route path="orders" element={<MyOrders user={user} />} />
-        
-        {/* ✅ CUSTOMER PROFILE/INFO PAGE */}
-        <Route path="profile" element={<CustomerInfo user={user} />} />
-        
-        <Route path="profile" element={<Placeholder title="profile" />} />
-      </Route>
+  path="/c"
+  element={
+    user && user.role === 'customer' ? (
+      <CustomerLayout onLogout={handleLogout} user={user} /> 
+    ) : (
+      <Navigate to="/auth" replace />
+    )
+  }
+>
+  <Route index element={<Navigate to="books" replace />} />
+  <Route path="books" element={<CustomerBooksPage />} /> {/* Remove user prop */}
+  <Route path="cart" element={<Placeholder title="My Cart" />} />
+  <Route path="orders" element={<MyOrders />} /> {/* Remove user prop */}
+  <Route path="profile" element={<CustomerInfo />} /> {/* Remove user prop */}
+</Route>
 
       {/* --------------------- */}
       {/* FALLBACK */}

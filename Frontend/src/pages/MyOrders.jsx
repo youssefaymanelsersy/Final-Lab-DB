@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import {useOutletContext} from 'react-router-dom';
 import { Package, Calendar, CreditCard, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
-export default function MyOrders({ user }) {
+export default function MyOrders() {
+  const { user } = useOutletContext();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState(null);
