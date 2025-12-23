@@ -6,9 +6,9 @@ const profileRouter = require('./profile');
 const cartRouter = require('./cart');
 const ordersRouter = require('./orders');
 
-// Mount each router at its respective path
-router.use('/profile', profileRouter);
-router.use('/cart', cartRouter);
-router.use('/orders', ordersRouter);
+// Mount each router directly (routes already include :id params)
+router.use('/', profileRouter);
+router.use('/', cartRouter);
+router.use('/', ordersRouter);
 
 module.exports = router;
