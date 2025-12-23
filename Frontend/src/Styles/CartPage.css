@@ -1,0 +1,167 @@
+.ctPage {
+    width: 100%;
+  }
+  
+  .ctGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-top: 16px;
+  }
+  
+  .ctPanel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  }
+  
+  .ctPanel--sticky {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+  }
+  
+  .ctPanelHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .ctPanelTitle {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  
+  .ctBadge {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  
+  .ctItem {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .ctItemTitle {
+    font-weight: 500;
+  }
+  
+  .ctItemMeta {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  .ctQty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .ctQtyBtn {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px;
+    cursor: pointer;
+  }
+  
+  .ctQtyVal {
+    min-width: 20px;
+    text-align: center;
+  }
+  
+  .ctLineTotal {
+    font-weight: 600;
+  }
+  
+  .ctRemove {
+    border: none;
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .ctSummaryRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+  
+  .ctHr {
+    height: 1px;
+    background: #eee;
+    margin: 12px 0;
+  }
+  
+  .ctPayRow {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+  }
+  
+  .ctRadio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .ctField {
+    margin-bottom: 10px;
+  }
+  
+  .ctField input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+  }
+  
+  .ctCheckoutBtn {
+    width: 100%;
+    margin-top: 12px;
+  }
+  
+  .ctNote {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 6px;
+  }
+  
+  .ctEmpty {
+    text-align: center;
+    padding: 30px 0;
+  }
+  /* Prevent items panel from stretching */
+  .ctPanel {
+    align-self: flex-start;
+  }
+  
+  /* Make items list wrap content only */
+  .ctList {
+    padding-bottom: 0;
+  }
+  .ctTopActions {
+    margin-left: auto;      /* THIS pushes it to the far right */
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .bkTopRow{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+    

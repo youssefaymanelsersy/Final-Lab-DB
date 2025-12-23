@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 
-import SearchOverlay from '../components/SearchOverlay.jsx';
 import '../Styles/CartPage.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
@@ -17,27 +16,12 @@ export default function CartPage({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Payment
-  const [payMethod, setPayMethod] = useState('cod'); // cod | visa
+  // VISA ONLY
   const [cardNumber, setCardNumber] = useState('');
   const [cardCvv, setCardCvv] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
 
-  const trendingItems = useMemo(
-    () => ['Science', 'Art', 'Religion', 'History', 'Geography'],
-    []
-  );
-
   const isEmpty = items.length === 0;
-
-  const handlePick = (value) => {
-    const picked = String(value || '').trim().toLowerCase();
-    if (picked === 'books') return navigate('/c/books');
-    if (picked === 'cart') return navigate('/c/cart');
-    if (picked === 'my orders' || picked === 'orders') return navigate('/c/orders');
-    if (picked === 'settings') return navigate('/c/settings');
-    if (trendingItems.map((x) => x.toLowerCase()).includes(picked)) return navigate('/c/books');
-  };
 
   const formatMoney = (n) => {
     const v = typeof n === 'number' ? n : parseFloat(n);
@@ -189,23 +173,20 @@ export default function CartPage({ user }) {
 
     if (isEmpty) return setError('Your cart is empty');
 
-    const payload = { payment_method: payMethod };
+    const digits = cardNumber.replace(/\D/g, '');
 
-    if (payMethod === 'visa') {
-      const digits = cardNumber.replace(/\D/g, '');
-      if (digits.length < 12) return setError('Enter a valid card number');
-      if (!/^\d{3,4}$/.test(cardCvv)) return setError('CVV must be 3 or 4 digits');
-      if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) return setError('Expiry must be MM/YY (example 05/27)');
+    if (digits.length < 12) return setError('Enter a valid card number');
+    if (!/^\d{3,4}$/.test(cardCvv)) return setError('CVV must be 3 or 4 digits');
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) return setError('Expiry must be MM/YY (example 05/27)');
 
-      payload.card_last4 = digits.slice(-4);
-      payload.card_expiry = cardExpiry;
-      payload.card_number = digits; // optional
-      payload.cvv = cardCvv;        // optional
-    } else {
-      // COD
-      payload.card_last4 = null;
-      payload.card_expiry = null;
-    }
+    const payload = {
+      payment_method: 'visa',
+      card_last4: digits.slice(-4),
+      card_expiry: cardExpiry,
+      // Optional (backend can ignore):
+      card_number: digits,
+      cvv: cardCvv,
+    };
 
     setLoading(true);
     try {
@@ -219,7 +200,7 @@ export default function CartPage({ user }) {
       if (!res.ok || !data.ok) throw new Error(data?.error || 'Checkout failed');
 
       setSuccess('Order placed successfully ✅');
-      setPayMethod('cod');
+
       setCardNumber('');
       setCardCvv('');
       setCardExpiry('');
@@ -236,16 +217,8 @@ export default function CartPage({ user }) {
   return (
     <div className="bkPage ctPage">
       <div className="bkTopRow">
-        <SearchOverlay
-          placeholder="Search..."
-          shortcutHint="⌘K"
-          trendingItems={trendingItems}
-          newInItems={['Books', 'Cart', 'My Orders', 'Settings']}
-          onPick={handlePick}
-        />
-
         <div className="ctTopActions">
-          <button className="btn-outline" onClick={() => navigate('/c/books')}>
+          <button className="btn-primary" onClick={() => navigate('/c/books')}>
             Continue shopping
           </button>
           <button className="btn-danger" onClick={clearCart} disabled={loading || isEmpty}>
@@ -334,72 +307,40 @@ export default function CartPage({ user }) {
 
           <div className="ctHr" />
 
-          {/* COD / VISA ALWAYS visible */}
           <div className="ctField">
-            <label>Payment Method</label>
-            <div className="ctPayRow">
-              <label className="ctRadio">
-                <input
-                  type="radio"
-                  name="pay"
-                  value="cod"
-                  checked={payMethod === 'cod'}
-                  onChange={() => setPayMethod('cod')}
-                />
-                <span>Cash on Delivery</span>
-              </label>
-
-              <label className="ctRadio">
-                <input
-                  type="radio"
-                  name="pay"
-                  value="visa"
-                  checked={payMethod === 'visa'}
-                  onChange={() => setPayMethod('visa')}
-                />
-                <span>Visa</span>
-              </label>
-            </div>
+            <label>Card Number</label>
+            <input
+              value={cardNumber}
+              onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 19))}
+              placeholder="1234-5678-9012-3456"
+              inputMode="numeric"
+            />
           </div>
 
-          {payMethod === 'visa' ? (
-            <>
-              <div className="ctField">
-                <label>Card Number</label>
-                <input
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 19))}
-                  placeholder="4111111111111111"
-                  inputMode="numeric"
-                />
-              </div>
+          <div className="ctField">
+            <label>CVV</label>
+            <input
+              value={cardCvv}
+              onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              placeholder="667"
+              inputMode="numeric"
+            />
+          </div>
 
-              <div className="ctField">
-                <label>CVV</label>
-                <input
-                  value={cardCvv}
-                  onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="123"
-                  inputMode="numeric"
-                />
-              </div>
-
-              <div className="ctField">
-                <label>Expiry (MM/YY)</label>
-                <input
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value.slice(0, 5))}
-                  placeholder="05/27"
-                />
-              </div>
-            </>
-          ) : (
-            <div className="ctNote">Pay when you receive your order (Cash on Delivery).</div>
-          )}
+          <div className="ctField">
+            <label>Expiry (MM/YY)</label>
+            <input
+              value={cardExpiry}
+              onChange={(e) => setCardExpiry(e.target.value.slice(0, 5))}
+              placeholder="05/27"
+            />
+          </div>
 
           <button className="btn-primary ctCheckoutBtn" onClick={checkout} disabled={loading || isEmpty}>
             Checkout <ArrowRight size={16} />
           </button>
+
+          <div className="ctNote">Card info is validated before checkout.</div>
         </div>
       </div>
     </div>
