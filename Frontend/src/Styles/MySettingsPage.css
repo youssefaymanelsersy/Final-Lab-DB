@@ -1,0 +1,308 @@
+:root {
+  --ms-bg: #f8f9fc;
+  --ms-card: #ffffff;
+  --ms-text: #111827;
+  --ms-muted: #6b7280;
+  --ms-border: #e5e7eb;
+  --ms-primary: #4f46e5;
+  --ms-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+}
+
+.msPage {
+  min-height: 100vh;
+  background: var(--ms-bg);
+  padding: 22px;
+}
+
+/* FULL WIDTH INSIDE MAIN (no centered small card) */
+.msFull {
+  width: 100%;
+}
+
+/* Header */
+.msHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.msTitle {
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: -0.3px;
+  color: var(--ms-text);
+}
+
+.msSub {
+  margin-top: 6px;
+  color: var(--ms-muted);
+  font-weight: 650;
+}
+
+.msMetaPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border: 1px solid var(--ms-border);
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.04);
+}
+
+.msMetaLabel {
+  color: var(--ms-muted);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.msMetaVal {
+  color: var(--ms-text);
+  font-weight: 950;
+  margin-top: 2px;
+}
+
+/* Alerts */
+.msAlert {
+  border: 1px solid var(--ms-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 850;
+  background: #fff;
+  margin-bottom: 14px;
+}
+
+.msAlertOk {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+  color: #065f46;
+}
+
+.msAlertBad {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #7f1d1d;
+}
+
+/* Grid (no right-side boxes anymore) */
+.msGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.msCard {
+  background: var(--ms-card);
+  border: 1px solid var(--ms-border);
+  border-radius: 16px;
+  box-shadow: var(--ms-shadow);
+  padding: 16px;
+}
+
+.msCardTitle {
+  font-weight: 950;
+  color: var(--ms-text);
+  margin-bottom: 12px;
+}
+
+/* Avatar */
+.msAvatarRow {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.msAvatarWrap {
+  position: relative;
+  width: 86px;
+  height: 86px;
+}
+
+.msAvatar,
+.msAvatarImg {
+  width: 86px;
+  height: 86px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 950;
+  font-size: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  object-fit: cover;
+}
+
+.msCamBtn {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.12);
+}
+
+.msHiddenFile {
+  display: none;
+}
+
+.msAvatarInfo {
+  min-width: 220px;
+}
+
+.msAvatarTitle {
+  font-weight: 950;
+  color: var(--ms-text);
+}
+
+.msTiny {
+  margin-top: 4px;
+  color: var(--ms-muted);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Form */
+.msForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.msField label {
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+  color: var(--ms-text);
+  margin-bottom: 8px;
+}
+
+.msInput {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--ms-border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.msInput input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-weight: 850;
+  color: var(--ms-text);
+}
+
+.msReadOnly {
+  background: #fbfbfd;
+}
+
+.msTag {
+  font-size: 11px;
+  font-weight: 950;
+  color: var(--ms-primary);
+  background: rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  padding: 5px 8px;
+  border-radius: 999px;
+}
+
+.msPlain {
+  width: 100%;
+  border: 1px solid var(--ms-border);
+  border-radius: 14px;
+  padding: 11px 12px;
+  font-weight: 850;
+  outline: none;
+}
+
+.msErr {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-weight: 850;
+  font-size: 12px;
+}
+
+/* Buttons */
+.msBtn {
+  width: 100%;
+  border: 1px solid var(--ms-border);
+  background: #fff;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.msBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.msBtnPrimary {
+  border-color: rgba(79, 70, 229, 0.35);
+  background: rgba(79, 70, 229, 0.1);
+  color: #2b2b99;
+}
+
+.msBtnDark {
+  border-color: rgba(17, 24, 39, 0.25);
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+}
+
+/* Loader */
+.msLoader {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--ms-border);
+  border-radius: 16px;
+  box-shadow: var(--ms-shadow);
+}
+
+.msSpinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 3px solid #e5e7eb;
+  border-top-color: var(--ms-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .msTwo { grid-template-columns: 1fr; }
+  .msHead { flex-direction: column; align-items: flex-start; }
+  .msMetaPill { align-items: flex-start; width: fit-content; }
+}
