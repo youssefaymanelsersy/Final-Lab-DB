@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Package, Calendar, CreditCard, ChevronDown, ChevronUp, Eye } from 'lucide-react';
-import '../styles/MyOrders.css';
+import '../Styles/MyOrders.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
