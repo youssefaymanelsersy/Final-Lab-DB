@@ -54,7 +54,7 @@ export default function CustomerInfo() {
       const data = await res.json();
       
       if (data.ok) {
-        setProfile(data.data);
+        setProfile(data.profile || data.data || {});
       } else {
         setMessage({ type: 'error', text: data.error });
       }
