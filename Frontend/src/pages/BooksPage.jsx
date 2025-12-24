@@ -1,23 +1,23 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { X, Save, Plus } from 'lucide-react';
 
 // Import Shared Component
 import BookCard from '../components/BookCard.jsx';
 import CategoryPicker from '../components/CategoryPicker.jsx';
-import SearchOverlay from '../components/SearchOverlay.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
 import '../Styles/BooksPage.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export default function BooksPage() {
-  const navigate = useNavigate();
   const [cat, setCat] = useState('all');
   const [view, setView] = useState('grid');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [sortOpen, setSortOpen] = useState(false);
 
   // --- MODAL STATE ---
   const [editingBook, setEditingBook] = useState(null);
@@ -54,15 +54,26 @@ export default function BooksPage() {
     'Geography',
   ];
 
+  const sortOptions = useMemo(() => ([
+    { value: 'newest', label: 'Newest' },
+    { value: 'title', label: 'Title A-Z' },
+    { value: 'price', label: 'Price Low-High' },
+    { value: 'price_desc', label: 'Price High-Low' },
+    { value: 'year', label: 'Publication Year' },
+    { value: 'stock_low', label: 'Lowest Stock' },
+  ]), []);
+
   // --- DATA FETCHING ---
   const loadBooks = useCallback(async (signal) => {
     setLoading(true);
     setError('');
     try {
       const body = {
-        limit: 50
+        limit: 50,
+        sort_by: sortBy
       };
       if (cat !== 'all') body.category = cat;
+      if (search.trim()) body.q = search.trim();
 
       const res = await fetch(`${API_BASE}/api/books`, {
         method: 'POST',
@@ -81,7 +92,7 @@ export default function BooksPage() {
     } finally {
       setLoading(false);
     }
-  }, [cat]);
+  }, [cat, sortBy, search]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -90,20 +101,7 @@ export default function BooksPage() {
   }, [cat, loadBooks]);
 
   // --- HANDLERS ---
-  const handlePick = (value) => {
-    const picked = String(value || '').trim();
-    const matchCat = categories.find(
-      (c) => c.label.toLowerCase() === picked.toLowerCase()
-    );
-    if (matchCat) {
-      setCat(matchCat.id);
-      return;
-    }
-    const key = picked.toLowerCase();
-    if (key === 'books') navigate('/admin/books');
-    if (key === 'customers') navigate('/admin/customers');
-    if (key === 'orders') navigate('/admin/orders');
-  };
+  // (Top search overlay removed for admin view; navigation quick picks not needed)
 
   // UPDATE Existing Book
   const handleUpdateBook = async (e) => {
@@ -169,49 +167,7 @@ export default function BooksPage() {
 
   return (
     <div className="bkPage">
-      <div className="bkTopRow">
-        <SearchOverlay
-          placeholder="Admin Search..."
-          shortcutHint="⌘K"
-          trendingItems={categories
-            .filter((c) => c.id !== 'all')
-            .map((c) => c.label)}
-          newInItems={['Books', 'Customers', 'Orders']}
-          onPick={handlePick}
-        />
-
-        {/* RIGHT SIDE GROUP: Add Button + View Toggle */}
-        <div
-          style={{
-            marginLeft: 'auto',
-            display: 'flex',
-            gap: '12px',
-            alignItems: 'center',
-          }}
-        >
-          <button
-            className="btn-primary"
-            style={{
-              height: '40px',
-              padding: '0 16px',
-              whiteSpace: 'nowrap',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#4f46e5',
-              color: 'white',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            onClick={() => setIsAdding(true)}
-          >
-            <Plus size={18} /> Add Book
-          </button>
-          <ViewToggle value={view} onChange={setView} />
-        </div>
-      </div>
+      {/* Top row removed; controls moved into Featured Categories header */}
 
       <div className="bkCatsRow">
         <CategoryPicker
@@ -219,9 +175,78 @@ export default function BooksPage() {
           onChange={setCat}
           items={categories}
           title="Featured Categories"
-          rightLabel="All Genre"
-          onRightClick={() => setCat('all')}
+          rightContent={(
+            <>
+              <button
+                type="button"
+                className="bnCatsLink"
+                onClick={() => setCat('all')}
+              >
+                All Genre
+              </button>
+              <button
+                className="btn-primary"
+                style={{
+                  height: '36px',
+                  padding: '0 14px',
+                  whiteSpace: 'nowrap',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#4f46e5',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+                onClick={() => setIsAdding(true)}
+              >
+                <Plus size={16} /> Add Book
+              </button>
+              <ViewToggle value={view} onChange={setView} />
+            </>
+          )}
         />
+      </div>
+
+      <div className="bkFiltersBar">
+        <input
+          type="text"
+          className="bkFilterInput"
+          placeholder="Search by title / ISBN"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <div className="bkFilterSelect" onBlur={() => setSortOpen(false)} tabIndex={0}>
+          <button
+            type="button"
+            className="bkFilterSelectBtn"
+            onClick={() => setSortOpen((o) => !o)}
+          >
+            {sortOptions.find((o) => o.value === sortBy)?.label || 'Sort'}
+            <span className={`caret ${sortOpen ? 'open' : ''}`}>▾</span>
+          </button>
+          {sortOpen && (
+            <div className="bkFilterSelectList">
+              {sortOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`bkFilterSelectItem ${sortBy === opt.value ? 'active' : ''}`}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setSortBy(opt.value);
+                    setSortOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="bkGridHead">
@@ -235,7 +260,7 @@ export default function BooksPage() {
         </div>
       </div>
 
-      <div className="bkGrid">
+      <div className={`bkGrid ${view === 'list' ? 'bkList' : ''}`}>
         {books.map((b) => (
           <BookCard key={b.isbn} book={b} onEdit={setEditingBook} />
         ))}

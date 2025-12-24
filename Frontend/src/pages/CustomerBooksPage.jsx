@@ -4,7 +4,6 @@ import SearchOverlay from '../components/SearchOverlay.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
 import BookCard from '../components/BookCard.jsx';
 import ReviewModal from '../components/ReviewModal.jsx';
-import { MessageSquarePlus } from 'lucide-react';
 import '../Styles/BooksPage.css';
 import '../Styles/FilterPanel.css';
 import {useOutletContext} from 'react-router-dom';
@@ -22,11 +21,13 @@ export default function CustomerBooksPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [sortOpen, setSortOpen] = useState(false);
 
   // Filter states
   const [priceMin, setPriceMin] = useState(0);
   const [priceMax, setPriceMax] = useState(5000);
-  const [sortBy, setSortBy] = useState('newest');
 
   // cart map: { [isbn]: qty }
   const [cartQty, setCartQty] = useState({});
@@ -49,8 +50,17 @@ export default function CustomerBooksPage() {
     []
   );
 
+  const sortOptions = useMemo(() => ([
+    { value: 'newest', label: 'Newest' },
+    { value: 'title', label: 'Title A-Z' },
+    { value: 'price', label: 'Price Low-High' },
+    { value: 'price_desc', label: 'Price High-Low' },
+    { value: 'year', label: 'Publication Year' },
+    { value: 'stock_low', label: 'Lowest Stock' },
+  ]), []);
+
   const loadBooks = useCallback(async (signal) => {
-    setLoading(true);9582
+    setLoading(true);
     setError('');
     try {
       const body = { 
@@ -60,6 +70,7 @@ export default function CustomerBooksPage() {
         sort_by: sortBy,
       };
       if (cat !== 'all') body.category = cat;
+      if (search.trim()) body.q_title = search.trim();
 
       const res = await fetch(`${API_BASE}/api/books`, {
         method: 'POST',
@@ -78,7 +89,7 @@ export default function CustomerBooksPage() {
     } finally {
       setLoading(false);
     }
-  }, [cat, priceMin, priceMax, sortBy]);
+  }, [cat, priceMin, priceMax, sortBy, search]);
 
   const loadCart = useCallback(async () => {
     // 3. Safety check using the prop
@@ -224,13 +235,14 @@ export default function CustomerBooksPage() {
     setPriceMax(5000);
     setSortBy('newest');
     setCat('all');
+    setSearch('');
   };
 
   return (
     <div className="bkPage">
       <div className="bkTopRow">
         <SearchOverlay
-          placeholder="Search or pick a category"
+          placeholder="Pick a category"
           shortcutHint="⌘K"
           trendingItems={categories
             .filter((c) => c.id !== 'all')
@@ -238,7 +250,9 @@ export default function CustomerBooksPage() {
           newInItems={['Books', 'Cart', 'My Orders', 'Settings']}
           onPick={handlePick}
         />
-        <ViewToggle value={view} onChange={setView} />
+        <div style={{ marginLeft: 'auto' }}>
+          <ViewToggle value={view} onChange={setView} />
+        </div>
       </div>
 
       <div className="bkCatsRow">
@@ -254,19 +268,47 @@ export default function CustomerBooksPage() {
 
       {/* Compact Filter Bar */}
       <div className="filter-bar">
-        <div className="filter-group">
+        <div className="filter-group" style={{ flex: 1 }}>
+          <label className="filter-label">Search</label>
+          <input
+            type="text"
+            className="bkFilterInput"
+            placeholder="Search by title"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-group" style={{ minWidth: '220px' }}>
           <label className="filter-label">Sort By</label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="filter-select"
-          >
-            <option value="newest">Newest First</option>
-            <option value="price">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-            <option value="title">Title: A to Z</option>
-            <option value="year">Year: Newest</option>
-          </select>
+          <div className="bkFilterSelect" onBlur={() => setSortOpen(false)} tabIndex={0}>
+            <button
+              type="button"
+              className="bkFilterSelectBtn"
+              onClick={() => setSortOpen((o) => !o)}
+            >
+              {sortOptions.find((o) => o.value === sortBy)?.label || 'Sort'}
+              <span className={`caret ${sortOpen ? 'open' : ''}`}>▾</span>
+            </button>
+            {sortOpen && (
+              <div className="bkFilterSelectList">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`bkFilterSelectItem ${sortBy === opt.value ? 'active' : ''}`}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setSortBy(opt.value);
+                      setSortOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="price-range">

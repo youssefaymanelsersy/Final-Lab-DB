@@ -32,6 +32,139 @@
   margin: 16px 0 12px;
 }
 
+/* Quick category pills (customer top bar) */
+.bkQuickCats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bkQuickCatBtn {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.bkQuickCatBtn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(79, 70, 229, 0.18);
+}
+
+.bkQuickCatBtn.active {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+
+/* Admin Filters Bar */
+.bkFiltersBar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.bkFilterInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bkFilterInput:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.bkFilterSelect {
+  position: relative;
+  min-width: 200px;
+}
+
+.bkFilterSelectBtn {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.bkFilterSelectBtn:hover {
+  border-color: #d1d5db;
+}
+
+.bkFilterSelectBtn:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.bkFilterSelect .caret {
+  font-size: 12px;
+  color: #6b7280;
+  transition: transform 0.15s;
+}
+
+.bkFilterSelect .caret.open {
+  transform: rotate(180deg);
+}
+
+.bkFilterSelectList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  padding: 6px;
+  z-index: 20;
+}
+
+.bkFilterSelectItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: background 0.12s, color 0.12s;
+}
+
+.bkFilterSelectItem:hover {
+  background: #f3f4f6;
+}
+
+.bkFilterSelectItem.active {
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
 .bkGridTitle {
   font-weight: 900;
   font-size: 16px;
@@ -77,6 +210,10 @@
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
+
+/* Inline list-mode actions: hidden until hover, then show */
+.bkGrid.bkList .bkInlineActs { display: none; align-items: center; gap: 8px; }
+.bkCard:hover .bkInlineActs { display: flex; }
 
 .bkGrid.bkList .bkCover {
   width: 50px !important;
@@ -183,6 +320,23 @@
   padding: 12px;
   display: grid;
   place-items: center;
+  position: relative; /* keep wishlist/review buttons anchored to the cover */
+}
+
+/* Hide wishlist/review buttons until hover */
+.bkWishlistBtn,
+.bkReviewBtn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: translateY(-2px);
+}
+
+.bkCard:hover .bkWishlistBtn,
+.bkCard:hover .bkReviewBtn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .bkCover {

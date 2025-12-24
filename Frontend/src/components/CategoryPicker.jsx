@@ -8,6 +8,7 @@ export default function CategoryPicker({
   title = 'Featured Categories',
   rightLabel = 'All Genre',
   onRightClick,
+  rightContent,
 }) {
   const safeItems = useMemo(() => {
     if (Array.isArray(items) && items.length) return items;
@@ -29,14 +30,19 @@ export default function CategoryPicker({
         <div>
           <div className="bnCatsTitle">{title}</div>
         </div>
-
-        <button
-          type="button"
-          className="bnCatsLink"
-          onClick={() => onRightClick?.()}
-        >
-          {rightLabel}
-        </button>
+        {rightContent ? (
+          <div className="bnCatsRight">
+            {rightContent}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="bnCatsLink"
+            onClick={() => onRightClick?.()}
+          >
+            {rightLabel}
+          </button>
+        )}
       </div>
 
       <div className="bnCatsTabs" role="tablist" aria-label="Categories">

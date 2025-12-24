@@ -17,6 +17,7 @@ router.post('/', async (req, res) => {
     try {
         // ---- 1) Read body params (all optional) ----
         const q = String(req.body.q || '').trim(); // search text (ISBN, title, author)
+        const q_title = String(req.body.q_title || '').trim(); // title-only search
         const category = String(req.body.category || '').trim(); // category filter
         const author = String(req.body.author || '').trim(); // author filter
         const publisher = String(req.body.publisher || '').trim(); // publisher filter
@@ -59,8 +60,13 @@ router.post('/', async (req, res) => {
         `;
         const params = [];
 
-        // Search: ISBN, title, or author name
-        if (q) {
+        // Title-only search (used by customer UI) takes precedence
+        if (q_title) {
+            sql += ` AND (b.title LIKE ?)`;
+            params.push(`%${q_title}%`);
+        }
+        // General search: ISBN, title, or author name
+        else if (q) {
             sql += ` AND (b.title LIKE ? OR b.isbn LIKE ? OR a.full_name LIKE ?)`;
             params.push(`%${q}%`, `%${q}%`, `%${q}%`);
         }
@@ -107,6 +113,8 @@ router.post('/', async (req, res) => {
             sql += ` ORDER BY b.title ASC, b.isbn DESC`;
         } else if (sort_by === 'year') {
             sql += ` ORDER BY b.publication_year DESC, b.isbn DESC`;
+        } else if (sort_by === 'stock_low') {
+            sql += ` ORDER BY b.stock_qty ASC, b.isbn DESC`;
         } else {
             // default: newest first
             sql += ` ORDER BY b.created_at DESC, b.isbn DESC`;

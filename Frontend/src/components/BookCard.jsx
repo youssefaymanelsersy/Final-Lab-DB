@@ -10,6 +10,7 @@ export default function BookCard({
   isInWishlist = false,
   onToggleWishlist,
   onReview,
+  viewMode = 'grid',
 }) {
   const isCustomer = typeof onAddOne === 'function';
   const coverSrc =
@@ -27,6 +28,8 @@ export default function BookCard({
       : 5;
   const isLowStock = !isCustomer && book.stock_qty <= threshold;
 
+  const showCoverActionButtons = isCustomer && viewMode !== 'list';
+
   return (
     <div className="bkCard">
       <div className="bkCoverWrap">
@@ -34,8 +37,8 @@ export default function BookCard({
         {/* Admin Low Stock Badge */}
         {isLowStock && <div className="bkBadge error">Low Stock</div>}
         
-        {/* Customer Review Button - Left side */}
-        {isCustomer && onReview && (
+        {/* Customer Review Button - Left side (cover overlay only in grid view) */}
+        {showCoverActionButtons && onReview && (
           <button
             className="bkReviewBtn"
             onClick={(e) => {
@@ -66,8 +69,8 @@ export default function BookCard({
           </button>
         )}
         
-        {/* Customer Wishlist Heart - Right side */}
-        {isCustomer && onToggleWishlist && (
+        {/* Customer Wishlist Heart - Right side (cover overlay only in grid view) */}
+        {showCoverActionButtons && onToggleWishlist && (
           <button
             className="bkWishlistBtn"
             onClick={(e) => {
@@ -156,34 +159,144 @@ export default function BookCard({
           {isCustomer ? (
             // CUSTOMER ACTIONS
             qtyInCart === 0 ? (
-              <button
-                className="bkBtnAdd"
-                onClick={onAddOne}
-                disabled={!inStock}
-              >
-                <ShoppingBag size={16} strokeWidth={2.5} />
-                <span>{inStock ? 'Add to cart' : 'Sold out'}</span>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {viewMode === 'list' && (
+                  <div className="bkInlineActs">
+                    {onReview && (
+                      <button
+                        className="bkReviewBtn"
+                        onClick={(e) => { e.stopPropagation(); onReview(); }}
+                        aria-label="Write a review"
+                        title="Write a review"
+                        style={{
+                          background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                          color: 'white',
+                        }}
+                      >
+                        <MessageSquarePlus size={16} />
+                      </button>
+                    )}
+                    {onToggleWishlist && (
+                      <button
+                        className="bkWishlistBtn"
+                        onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}
+                        aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                        }}
+                      >
+                        <Heart
+                          size={18}
+                          fill={isInWishlist ? '#e74c3c' : 'none'}
+                          stroke={isInWishlist ? '#e74c3c' : '#666'}
+                          strokeWidth={2}
+                        />
+                      </button>
+                    )}
+                  </div>
+                )}
+                <button
+                  className="bkBtnAdd"
+                  onClick={onAddOne}
+                  disabled={!inStock}
+                >
+                  <ShoppingBag size={16} strokeWidth={2.5} />
+                  <span>{inStock ? 'Add to cart' : 'Sold out'}</span>
+                </button>
+              </div>
             ) : (
-              <div className="bkQtyPill">
-                <button
-                  className="bkQtyBtn"
-                  onClick={() => onSetQty(qtyInCart - 1)}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={16} strokeWidth={2.5} />
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {viewMode === 'list' && (
+                  <div className="bkInlineActs">
+                    {onReview && (
+                      <button
+                        className="bkReviewBtn"
+                        onClick={(e) => { e.stopPropagation(); onReview(); }}
+                        aria-label="Write a review"
+                        title="Write a review"
+                        style={{
+                          background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                          color: 'white',
+                        }}
+                      >
+                        <MessageSquarePlus size={16} />
+                      </button>
+                    )}
+                    {onToggleWishlist && (
+                      <button
+                        className="bkWishlistBtn"
+                        onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}
+                        aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                        }}
+                      >
+                        <Heart
+                          size={18}
+                          fill={isInWishlist ? '#e74c3c' : 'none'}
+                          stroke={isInWishlist ? '#e74c3c' : '#666'}
+                          strokeWidth={2}
+                        />
+                      </button>
+                    )}
+                  </div>
+                )}
+                <div className="bkQtyPill">
+                  <button
+                    className="bkQtyBtn"
+                    onClick={() => onSetQty(qtyInCart - 1)}
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={16} strokeWidth={2.5} />
+                  </button>
 
-                <span className="bkQtyNum">{qtyInCart}</span>
+                  <span className="bkQtyNum">{qtyInCart}</span>
 
-                <button
-                  className="bkQtyBtn"
-                  onClick={() => onSetQty(qtyInCart + 1)}
-                  disabled={qtyInCart >= book.stock_qty}
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={16} strokeWidth={2.5} />
-                </button>
+                  <button
+                    className="bkQtyBtn"
+                    onClick={() => onSetQty(qtyInCart + 1)}
+                    disabled={qtyInCart >= book.stock_qty}
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
             )
           ) : (
