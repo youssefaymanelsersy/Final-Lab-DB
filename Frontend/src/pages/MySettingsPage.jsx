@@ -29,6 +29,7 @@ export default function MySettingsPage({ user }) {
     email: '',
     phone: '',
     shipping_address: '',
+    avatar_url: '',
     created_at: '',
   });
 
@@ -40,6 +41,7 @@ export default function MySettingsPage({ user }) {
 
   const [errors, setErrors] = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
 
   const initials = useMemo(() => {
     const a = (profile.first_name || '').trim()[0] || '';
@@ -83,6 +85,7 @@ export default function MySettingsPage({ user }) {
         email: p.email || '',
         phone: p.phone || '',
         shipping_address: p.shipping_address || '',
+        avatar_url: p.avatar_url || '',
         created_at: p.created_at || '',
       });
     } catch (e) {
@@ -206,7 +209,35 @@ export default function MySettingsPage({ user }) {
 
     const url = URL.createObjectURL(file);
     setAvatarPreview(url);
+    setAvatarFile(file);
     setMessage({ type: 'success', text: 'Avatar selected (preview only).' });
+  }
+
+  function resolveAvatar(url) {
+    if (!url) return '';
+    return url.startsWith('http') ? url : `${API_BASE}${url}`;
+  }
+
+  async function handleAvatarUpload() {
+    if (!user?.id || !avatarFile) return;
+    try {
+      setMessage(null);
+      const fd = new FormData();
+      fd.append('avatar', avatarFile);
+      const res = await fetch(`${API_BASE}/api/customers/${user.id}/avatar`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+      setProfile((prev) => ({ ...prev, avatar_url: data.avatar_url || prev.avatar_url }));
+      setAvatarPreview(null);
+      setAvatarFile(null);
+      setMessage({ type: 'success', text: 'Avatar uploaded successfully.' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e.message || 'Failed to upload avatar' });
+    }
   }
 
   if (!user) {
@@ -268,6 +299,8 @@ export default function MySettingsPage({ user }) {
               <div className="msAvatarWrap">
                 {avatarPreview ? (
                   <img className="msAvatarImg" src={avatarPreview} alt="avatar preview" />
+                ) : profile.avatar_url ? (
+                  <img className="msAvatarImg" src={resolveAvatar(profile.avatar_url)} alt="avatar" />
                 ) : (
                   <div className="msAvatar">{initials}</div>
                 )}
@@ -288,7 +321,14 @@ export default function MySettingsPage({ user }) {
               <div className="msAvatarInfo">
                  <div className="msTiny">Camera button opens the picker.</div>
                 <div className="msSub">JPG or PNG. Max size 2MB.</div>
-                <div>Upload</div>
+                <button
+                  className="msBtn msBtnPrimary"
+                  type="button"
+                  onClick={handleAvatarUpload}
+                  disabled={!avatarFile}
+                >
+                  Upload
+                </button>
               </div>
             </div>
           </div>

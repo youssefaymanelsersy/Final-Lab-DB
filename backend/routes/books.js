@@ -196,7 +196,7 @@ router.get('/:isbn/reviews', async (req, res) => {
                 r.rating,
                 r.review_text,
                 r.created_at,
-                c.name as customer_name
+                CONCAT_WS(' ', c.first_name, c.last_name) AS customer_name
             FROM reviews r
             JOIN customers c ON r.customer_id = c.id
             WHERE r.isbn = ?
@@ -285,7 +285,3 @@ router.post('/:isbn/reviews', async (req, res) => {
 
 
 module.exports = router;
-
-/******************************************************************
- * End of File
- ******************************************************************/

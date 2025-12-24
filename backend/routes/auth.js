@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
-const { verifyToken } = require('./jwtHelper');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -25,9 +25,41 @@ function setAuthCookie(res, token) {
 
 // --- Routes ---
 
-// Check Session
-router.get('/me', verifyToken, (req, res) => {
-  res.json({ ok: true, user: req.user });
+// Check Session - return enriched profile for customers
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    if (req.user?.role === 'admin') {
+      return res.json({ ok: true, user: { role: 'admin', username: 'admin' } });
+    }
+
+    const id = Number(req.user?.id);
+    if (!id) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+
+    let rows;
+    try {
+      [rows] = await pool.query(
+        `SELECT id, username, first_name, last_name, email, phone, shipping_address, avatar_url
+        FROM customers WHERE id = ? LIMIT 1`,
+        [id]
+      );
+    } catch (e) {
+      if (/Unknown column 'avatar_url'/.test(e.message)) {
+        [rows] = await pool.query(
+          `SELECT id, username, first_name, last_name, email, phone, shipping_address
+          FROM customers WHERE id = ? LIMIT 1`,
+          [id]
+        );
+        const u = rows[0];
+        return res.json({ ok: true, user: { ...u, avatar_url: null, role: 'customer' } });
+      }
+      throw e;
+    }
+    if (rows.length === 0) return res.status(404).json({ ok: false, error: 'User not found' });
+    const u = rows[0];
+    res.json({ ok: true, user: { ...u, role: 'customer' } });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 router.post('/signup', async (req, res) => {
@@ -90,7 +122,20 @@ router.post('/signup', async (req, res) => {
 
     setAuthCookie(res, token);
 
-    res.status(201).json({ ok: true, user });
+    res.status(201).json({
+      ok: true,
+      user: {
+        id: result.insertId,
+        role: 'customer',
+        username,
+        first_name,
+        last_name,
+        email,
+        phone,
+        shipping_address,
+        avatar_url: null,
+      },
+    });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -115,10 +160,26 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const [rows] = await pool.query(
-      `SELECT id, password_hash, username FROM customers WHERE username = ?`,
-      [username]
-    );
+    let rows;
+    try {
+      [rows] = await pool.query(
+        `SELECT id, username, password_hash, first_name, last_name, email, phone, shipping_address, avatar_url
+        FROM customers WHERE username = ?`,
+        [username]
+      );
+    } catch (e) {
+      if (/Unknown column 'avatar_url'/.test(e.message)) {
+        [rows] = await pool.query(
+          `SELECT id, username, password_hash, first_name, last_name, email, phone, shipping_address
+          FROM customers WHERE username = ?`,
+          [username]
+        );
+        // mark that avatar_url is missing
+        rows[0] && (rows[0].avatar_url = null);
+      } else {
+        throw e;
+      }
+    }
 
     if (rows.length === 0)
       return res.status(401).json({ ok: false, error: 'Invalid credentials' });
@@ -129,17 +190,23 @@ router.post('/login', async (req, res) => {
     if (!match)
       return res.status(401).json({ ok: false, error: 'Invalid credentials' });
 
-    const token = signToken({
-      id: user.id,
-      role: 'customer',
-      username: user.username,
-    });
+    const token = signToken({ id: user.id, role: 'customer' });
 
     setAuthCookie(res, token);
 
     res.json({
       ok: true,
-      user: { id: user.id, username: user.username, role: 'customer' },
+      user: {
+        id: user.id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        phone: user.phone,
+        shipping_address: user.shipping_address,
+        avatar_url: user.avatar_url ?? null,
+        role: 'customer',
+      },
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

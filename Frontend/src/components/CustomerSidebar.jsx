@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   ShoppingCart,
@@ -9,13 +10,49 @@ import {
 } from 'lucide-react';
 import '../Styles/Sidebar.css';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
 
 export default function CustomerSidebar({ user, onLogout }) {
   const navigate = useNavigate();
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || null);
+
+  const resolvedAvatar = useMemo(() => {
+    if (!avatarUrl) return null;
+    return avatarUrl.startsWith('/') ? `${API_BASE}${avatarUrl}` : avatarUrl;
+  }, [avatarUrl]);
 
   const initials = String(
     user?.first_name?.[0] || user?.username?.[0] || 'C'
   ).toUpperCase();
+
+  useEffect(() => {
+    // if parent updates user (e.g., after /auth/me), sync avatar
+    if (user?.avatar_url) setAvatarUrl(user.avatar_url);
+  }, [user?.avatar_url]);
+
+  useEffect(() => {
+    // If no avatar provided on session, fetch profile once
+    let stop = false;
+    async function fetchProfile() {
+      if (!user?.id || avatarUrl) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/customers/${user.id}`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!stop && data?.ok && data.profile?.avatar_url) {
+          setAvatarUrl(data.profile.avatar_url);
+        }
+      } catch (_) {
+        // ignore; sidebar can fall back to initials
+      }
+    }
+    fetchProfile();
+    return () => {
+      stop = true;
+    };
+  }, [user?.id, avatarUrl]);
 
   async function handleLogoutClick() {
     if (onLogout) await onLogout();
@@ -64,7 +101,16 @@ export default function CustomerSidebar({ user, onLogout }) {
 
 
         <div className="sbMe">
-          <div className="sbAvatar">{initials}</div>
+          {resolvedAvatar ? (
+            <img
+              className="sbAvatar"
+              src={resolvedAvatar}
+              alt="avatar"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="sbAvatar">{initials}</div>
+          )}
           <div>
             <div className="sbMeName">
               {user?.first_name

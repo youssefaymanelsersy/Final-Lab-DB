@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { verifyAdmin } = require('./middleware/auth');
@@ -13,6 +14,10 @@ app.use(cors({
     credentials: true
 }));
 app.use(cookieParser());
+
+// Serve uploaded avatars statically
+const avatarsDir = path.resolve(process.cwd(), 'uploads', 'avatars');
+app.use('/uploads/avatars', express.static(avatarsDir, { maxAge: '7d', index: false }));
 
 // --------------------
 // Routes

@@ -25,6 +25,7 @@ export default function Sidebar({ onLogout }) {
           <NavLink
             key={to}
             to={to}
+            Icon={Icon}
             // 'end' ensures /admin/books doesn't stay active when at /admin/books/new
             end
             className={({ isActive }) => 'sbItem ' + (isActive ? 'active' : '')}

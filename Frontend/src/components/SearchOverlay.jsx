@@ -177,7 +177,6 @@ export default function SearchOverlay({
 
   return (
     <div className="searchWrap">
-     
       <div className="searchTop">
         {/* <div className="searchChip" title="Search">
           <Search size={18} />
@@ -281,6 +280,7 @@ export default function SearchOverlay({
                 return (
                   <button
                     key={label}
+                    Icon={Icon}
                     className={`searchCard ${selectedIndex === globalIdx ? 'selected' : ''}`}
                     type="button"
                     onClick={() => pick(label)}
