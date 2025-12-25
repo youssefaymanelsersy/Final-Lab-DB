@@ -15,7 +15,7 @@ import '../Styles/MySettingsPage.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
-export default function MySettingsPage({ user }) {
+export default function MySettingsPage({ user, onUserChange }) {
   const fileRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
@@ -133,6 +133,16 @@ export default function MySettingsPage({ user }) {
       if (!data.ok) throw new Error(data.error || 'Update failed');
 
       setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      if (onUserChange) {
+        onUserChange({
+          ...user,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          username: profile.username,
+          phone: profile.phone,
+          shipping_address: profile.shipping_address,
+        });
+      }
       setErrors({});
     } catch (e) {
       setMessage({ type: 'error', text: e.message || 'Failed to update profile' });
@@ -232,6 +242,9 @@ export default function MySettingsPage({ user }) {
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || `Upload failed (${res.status})`);
       setProfile((prev) => ({ ...prev, avatar_url: data.avatar_url || prev.avatar_url }));
+      if (onUserChange) {
+        onUserChange({ ...user, avatar_url: data.avatar_url || profile.avatar_url });
+      }
       setAvatarPreview(null);
       setAvatarFile(null);
       setMessage({ type: 'success', text: 'Avatar uploaded successfully.' });

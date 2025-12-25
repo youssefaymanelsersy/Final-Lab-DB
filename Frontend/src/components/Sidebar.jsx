@@ -9,7 +9,17 @@ const navItems = [
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
 ];
 
-export default function Sidebar({ onLogout }) {
+export default function Sidebar({ user, onLogout }) {
+  const displayName = user?.first_name
+    ? `${user.first_name} ${user?.last_name || ''}`.trim()
+    : user?.username || 'Admin';
+
+  const displayRole = user?.role || 'Admin';
+
+  const initials = String(
+    user?.first_name?.[0] || user?.username?.[0] || 'A'
+  ).toUpperCase();
+
   return (
     <aside className="sidebar">
       <div className="sbBrand">
@@ -43,10 +53,10 @@ export default function Sidebar({ onLogout }) {
         </button>
 
         <div className="sbMe">
-          <div className="sbAvatar">AS</div>
+          <div className="sbAvatar">{initials}</div>
           <div className="sbMeMeta">
-            <div className="sbMeName">Ahmed Sameh</div>
-            <div className="sbMeRole">Admin</div>
+            <div className="sbMeName">{displayName}</div>
+            <div className="sbMeRole">{displayRole}</div>
           </div>
         </div>
       </div>

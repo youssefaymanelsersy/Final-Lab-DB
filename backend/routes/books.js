@@ -111,10 +111,10 @@ router.post('/', async (req, res) => {
             sql += ` ORDER BY b.selling_price DESC, b.isbn DESC`;
         } else if (sort_by === 'title') {
             sql += ` ORDER BY b.title ASC, b.isbn DESC`;
+        } else if (sort_by === 'title_desc') {
+            sql += ` ORDER BY b.title DESC, b.isbn DESC`;
         } else if (sort_by === 'year') {
             sql += ` ORDER BY b.publication_year DESC, b.isbn DESC`;
-        } else if (sort_by === 'stock_low') {
-            sql += ` ORDER BY b.stock_qty ASC, b.isbn DESC`;
         } else {
             // default: newest first
             sql += ` ORDER BY b.created_at DESC, b.isbn DESC`;

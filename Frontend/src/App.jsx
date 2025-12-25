@@ -56,6 +56,17 @@ export default function App() {
   // 2. Global Logout Handler
   const handleLogout = async () => {
     try {
+      if (user?.role === 'customer' && user?.id) {
+        await fetch(`${API_BASE}/api/customers/${user.id}/logout`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+      }
+    } catch (e) {
+      console.error('Failed to clear cart on logout', e);
+    }
+
+    try {
       await fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
@@ -63,6 +74,7 @@ export default function App() {
     } catch (e) {
       console.error(e);
     }
+
     setUser(null);
   };
 
@@ -94,7 +106,7 @@ export default function App() {
         path="/admin"
         element={
           user && user.role === 'admin' ? (
-            <AdminLayout onLogout={handleLogout} />
+            <AdminLayout user={user} onLogout={handleLogout} />
           ) : (
             <Navigate to="/auth" replace />
           )
@@ -128,7 +140,7 @@ export default function App() {
         <Route path="cart" element={<CartPage user={user} />} />
         <Route path="wishlist" element={<WishlistPage user={user} />} />
         <Route path="orders" element={<MyOrders user={user} />} />
-        <Route path="settings" element={<MySettingsPage user={user} />} />
+        <Route path="settings" element={<MySettingsPage user={user} onUserChange={setUser} />} />
       </Route>
 
 

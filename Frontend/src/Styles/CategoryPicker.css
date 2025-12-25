@@ -4,6 +4,7 @@
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 14px 16px;
+  overflow: visible;
 }
 
 .bnCatsTop {
@@ -12,10 +13,26 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  position: relative;
+}
+.bnCatsRightBelow {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
 }
 
 .bnCatsRight {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bnCatsRightStack {
+  display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
 }

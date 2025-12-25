@@ -176,36 +176,31 @@ export default function BooksPage() {
           items={categories}
           title="Featured Categories"
           rightContent={(
-            <>
-              <button
-                type="button"
-                className="bnCatsLink"
-                onClick={() => setCat('all')}
-              >
-                All Genre
-              </button>
-              <button
-                className="btn-primary"
-                style={{
-                  height: '36px',
-                  padding: '0 14px',
-                  whiteSpace: 'nowrap',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: '#4f46e5',
-                  color: 'white',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-                onClick={() => setIsAdding(true)}
-              >
-                <Plus size={16} /> Add Book
-              </button>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ViewToggle value={view} onChange={setView} />
-            </>
+              <div className="bnCatsRightBelow">
+                <button
+                  className="btn-primary"
+                  style={{
+                    height: '36px',
+                    padding: '0 14px',
+                    whiteSpace: 'nowrap',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#4f46e5',
+                    color: 'white',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  onClick={() => setIsAdding(true)}
+                >
+                  <Plus size={16} /> Add Book
+                </button>
+              </div>
+            </div>
           )}
         />
       </div>

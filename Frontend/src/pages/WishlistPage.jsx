@@ -5,6 +5,12 @@ import '../Styles/WishlistPage.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
+const formatPrice = (value) =>
+    Number(value ?? 0).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
 export default function WishlistPage() {
     const { user } = useOutletContext();
     const navigate = useNavigate();
@@ -134,7 +140,7 @@ export default function WishlistPage() {
                                 <h3 className="bookTitle">{book.title}</h3>
                                 <p className="bookMeta">{book.publisher_name}</p>
                                 <p className="bookMeta">{book.publication_year}</p>
-                                <p className="bookPrice">EGP {Number(book.selling_price).toFixed(2)}</p>
+                                <p className="bookPrice">${formatPrice(book.selling_price)}</p>
                                 <div className="bookStock">
                                     {book.stock_qty > 0 ? (
                                         <span className="inStock">In Stock ({book.stock_qty})</span>

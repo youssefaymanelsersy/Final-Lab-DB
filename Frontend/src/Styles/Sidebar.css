@@ -1,6 +1,10 @@
 .sidebar{
   width: 280px;
   min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
   padding: 18px;
 
   background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.75));
