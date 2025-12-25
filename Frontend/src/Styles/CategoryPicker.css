@@ -4,6 +4,7 @@
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 14px 16px;
+  overflow: visible;
 }
 
 .bnCatsTop {
@@ -16,8 +17,11 @@
 }
 .bnCatsRightBelow {
   position: absolute;
-  right: 0; /* align with All Genre right edge */
-  top: calc(100% + 4px); /* place directly below the button */
+  right: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
 }
 
 .bnCatsRight {
