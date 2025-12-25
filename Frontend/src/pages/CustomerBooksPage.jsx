@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import CategoryPicker from '../components/CategoryPicker.jsx';
-import SearchOverlay from '../components/SearchOverlay.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
 import BookCard from '../components/BookCard.jsx';
 import ReviewModal from '../components/ReviewModal.jsx';
@@ -222,13 +221,6 @@ export default function CustomerBooksPage() {
     }
   }, [customerId, loadCart, loadWishlist]);
 
-  const handlePick = (value) => {
-    const picked = String(value || '').trim();
-    const matchCat = categories.find(
-      (c) => c.label.toLowerCase() === picked.toLowerCase()
-    );
-    if (matchCat) setCat(matchCat.id);
-  };
 
   const handleFilterReset = () => {
     setPriceMin(0);
@@ -240,29 +232,26 @@ export default function CustomerBooksPage() {
 
   return (
     <div className="bkPage">
-      <div className="bkTopRow">
-        <SearchOverlay
-          placeholder="Pick a category"
-          shortcutHint="⌘K"
-          trendingItems={categories
-            .filter((c) => c.id !== 'all')
-            .map((c) => c.label)}
-          newInItems={['Books', 'Cart', 'My Orders', 'Settings']}
-          onPick={handlePick}
-        />
-        <div style={{ marginLeft: 'auto' }}>
-          <ViewToggle value={view} onChange={setView} />
-        </div>
-      </div>
-
       <div className="bkCatsRow">
         <CategoryPicker
           value={cat}
           onChange={setCat}
           items={categories}
           title="Featured Categories"
-          rightLabel="All Genre"
-          onRightClick={() => setCat('all')}
+          rightContent={(
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className="bnCatsLink"
+                onClick={() => setCat('all')}
+              >
+                All Genre
+              </button>
+              <div className="bnCatsRightBelow">
+                <ViewToggle value={view} onChange={setView} />
+              </div>
+            </div>
+          )}
         />
       </div>
 

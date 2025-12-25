@@ -12,10 +12,23 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  position: relative;
+}
+.bnCatsRightBelow {
+  position: absolute;
+  right: 0; /* align with All Genre right edge */
+  top: calc(100% + 4px); /* place directly below the button */
 }
 
 .bnCatsRight {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bnCatsRightStack {
+  display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
 }
