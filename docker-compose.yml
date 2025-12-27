@@ -9,7 +9,7 @@ services:
     command: npm run dev
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - backend_node_modules:/app/node_modules
       - ./backend/certs:/app/certs:ro
   frontend:
     build: ./Frontend
@@ -22,3 +22,6 @@ services:
     volumes:
       - ./Frontend:/app
       - /app/node_modules
+
+volumes:
+  backend_node_modules:
