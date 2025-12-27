@@ -83,6 +83,9 @@ DB_NAME=bookstore
 DB_PORT=4000
 PORT=3000
 
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook
+
 JWT_SECRET=your_secret_key
 FRONTEND_URL=http://localhost:5173
 ```
@@ -132,6 +135,7 @@ See `Database/schema.sql` for full schema.
 - Cookies for session management
 - Role-based access (Customer/Admin)
 - Secure password hashing with bcrypt
+- Secure checkout using stripe API
 
 ### API Endpoints
 
