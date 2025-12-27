@@ -209,9 +209,10 @@ export default function BooksPage() {
         <input
           type="text"
           className="bkFilterInput"
-          placeholder="Search by title / ISBN"
+          placeholder="Search by title, ISBN, author, or publisher"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          style={{ marginRight: '8px', width: '350px' }}
         />
 
         <div className="bkFilterSelect" onBlur={() => setSortOpen(false)} tabIndex={0}>

@@ -62,31 +62,36 @@ router.post('/', async (req, res) => {
 
         // Title-only search (used by customer UI) takes precedence
         if (q_title) {
-            sql += ` AND (b.title LIKE ?)`;
-            params.push(`%${q_title}%`);
+            sql += ` AND (LOWER(b.title) LIKE ?)`;
+            params.push(`%${q_title.toLowerCase()}%`);
         }
-        // General search: ISBN, title, or author name
+        // General search: title, author name, or publisher name (case-insensitive)
         else if (q) {
-            sql += ` AND (b.title LIKE ? OR b.isbn LIKE ? OR a.full_name LIKE ?)`;
-            params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+            const qLower = q.toLowerCase();
+            sql += ` AND (
+                LOWER(b.title) LIKE ? OR
+                LOWER(a.full_name) LIKE ? OR
+                LOWER(p.name) LIKE ?
+            )`;
+            params.push(`%${qLower}%`, `%${qLower}%`, `%${qLower}%`);
         }
 
-        // Filter by category
+        // Filter by category (case-insensitive)
         if (category) {
-            sql += ` AND b.category = ?`;
-            params.push(category);
+            sql += ` AND LOWER(b.category) = ?`;
+            params.push(category.toLowerCase());
         }
 
-        // Filter by author name
+        // Filter by author name (case-insensitive)
         if (author) {
-            sql += ` AND a.full_name = ?`;
-            params.push(author);
+            sql += ` AND LOWER(a.full_name) = ?`;
+            params.push(author.toLowerCase());
         }
 
-        // Filter by publisher name
+        // Filter by publisher name (case-insensitive)
         if (publisher) {
-            sql += ` AND p.name = ?`;
-            params.push(publisher);
+            sql += ` AND LOWER(p.name) = ?`;
+            params.push(publisher.toLowerCase());
         }
         
         // Filter by price range

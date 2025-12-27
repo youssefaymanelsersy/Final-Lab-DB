@@ -69,7 +69,7 @@ export default function CustomerBooksPage() {
         sort_by: sortBy,
       };
       if (cat !== 'all') body.category = cat;
-      if (search.trim()) body.q_title = search.trim();
+      if (search.trim()) body.q = search.trim();
 
       const res = await fetch(`${API_BASE}/api/books`, {
         method: 'POST',
@@ -262,7 +262,7 @@ export default function CustomerBooksPage() {
           <input
             type="text"
             className="bkFilterInput"
-            placeholder="Search by title"
+            placeholder="Search by title, author, or publisher"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
