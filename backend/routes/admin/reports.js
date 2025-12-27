@@ -14,8 +14,8 @@ router.get("/sales/previous-month", async (req, res) => {
         COUNT(DISTINCT s.order_id) AS orders_count,
         SUM(s.qty) AS items_sold
         FROM sales s
-        WHERE s.sale_date >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01')
-        AND s.sale_date <  DATE_FORMAT(CURDATE(), '%Y-%m-01');
+        WHERE s.sale_date >= CURDATE() - INTERVAL 30 DAY
+        AND s.sale_date < CURDATE();
     `;
 
         const [rows] = await pool.query(sql);

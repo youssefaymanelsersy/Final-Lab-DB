@@ -9,6 +9,7 @@ import CustomerLayout from './layouts/CustomerLayout.jsx';
 // Pages
 import LoginPage from './pages/LoginPage.jsx';
 import BooksPage from './pages/BooksPage.jsx'; // Admin Books
+import AdminCustomersPage from './pages/AdminCustomersPage.jsx';
 import CustomerBooksPage from './pages/CustomerBooksPage.jsx'; // Customer Books
 import ReportsPage from './pages/ReportsPage.jsx';
 import MySettingsPage from './pages/MySettingsPage.jsx';
@@ -119,7 +120,7 @@ export default function App() {
         <Route path="orders" element={<OrdersPage />} />
         <Route
           path="customers"
-          element={<Placeholder title="Customers Management" />}
+          element={<AdminCustomersPage />}
         />
       </Route>
 
