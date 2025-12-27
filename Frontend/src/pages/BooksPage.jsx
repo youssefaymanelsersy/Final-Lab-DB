@@ -131,8 +131,10 @@ export default function BooksPage() {
   };
 
   // ADD New Book
+  const [addBookError, setAddBookError] = useState('');
   const handleAddBook = async (e) => {
     e.preventDefault();
+    setAddBookError('');
     try {
       const res = await fetch(`${API_BASE}/api/admin/books`, {
         method: 'POST',
@@ -157,11 +159,11 @@ export default function BooksPage() {
         });
         loadBooks();
       } else {
-        alert(data.error);
+        setAddBookError(data.error || 'Failed to add book');
       }
     } catch (err) {
       console.error('Failed to add book', err);
-      alert('Failed to add book');
+      setAddBookError('Failed to add book');
     }
   };
 
@@ -278,6 +280,11 @@ export default function BooksPage() {
 
             <form onSubmit={handleUpdateBook}>
               <div className="modal-body">
+                {addBookError && (
+                  <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>
+                    {addBookError}
+                  </div>
+                )}
                 <div className="form-group">
                   <label>ISBN (Cannot Change)</label>
                   <input

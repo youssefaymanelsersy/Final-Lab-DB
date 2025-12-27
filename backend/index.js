@@ -8,6 +8,13 @@ const { verifyAdmin } = require('./middleware/auth');
 
 const app = express();
 
+// ✅ Webhook route must use RAW body (before express.json)
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  require("./routes/stripeWebhook")
+);
+
 app.use(express.json());
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -32,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/admin', verifyAdmin, adminRoutes);
+app.use('/api/checkout', require('./routes/checkout'));
 
 // Enhanced health check with database connectivity verification
 app.get('/health', async (req, res) => {

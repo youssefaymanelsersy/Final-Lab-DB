@@ -1,3 +1,11 @@
+  /* Pinned toggle bar for AdminCustomersPage */
+  .toggleBarPinned {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    background: transparent;
+  }
   .bkPage {
   padding: 20px;
   width: 100%;
