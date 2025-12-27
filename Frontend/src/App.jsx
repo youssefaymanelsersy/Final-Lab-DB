@@ -15,6 +15,7 @@ import MySettingsPage from './pages/MySettingsPage.jsx';
 import CartPage from './pages/CartPage.jsx';
 import MyOrders from './pages/MyOrders.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage.jsx';
 
 
 
@@ -141,6 +142,7 @@ export default function App() {
         <Route path="wishlist" element={<WishlistPage user={user} />} />
         <Route path="orders" element={<MyOrders user={user} />} />
         <Route path="settings" element={<MySettingsPage user={user} onUserChange={setUser} />} />
+        <Route path="checkout-success" element={<CheckoutSuccessPage />} />
       </Route>
 
 

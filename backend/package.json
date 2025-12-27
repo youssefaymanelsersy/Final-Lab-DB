@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-     "dev": "nodemon -L index.js"
+    "dev": "nodemon -L index.js"
   },
   "keywords": [],
   "author": "",
@@ -18,9 +18,10 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.16.0",
     "multer": "^1.4.5-lts.1",
-    "sharp": "^0.33.4"
+    "mysql2": "^3.16.0",
+    "sharp": "^0.33.4",
+    "stripe": "^20.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

@@ -16,11 +16,6 @@ export default function CartPage({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // VISA ONLY
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-
   const isEmpty = items.length === 0;
 
   const formatMoney = (n) => {
@@ -171,56 +166,29 @@ export default function CartPage({ user }) {
     }
   };
 
-  const checkout = async () => {
-    if (!customerId) return;
+  const handleStripeCheckout = async () => {
+    if (!customerId || isEmpty) return setError('Your cart is empty');
+    
+    setLoading(true);
     setError('');
     setSuccess('');
-
-    if (isEmpty) return setError('Your cart is empty');
-
-    const digits = cardNumber.replace(/\D/g, '');
-
-    if (digits.length < 12) return setError('Enter a valid card number');
-    if (!/^\d{3,4}$/.test(cardCvv))
-      return setError('CVV must be 3 or 4 digits');
-    if (!/^\d{2}\/\d{2}$/.test(cardExpiry))
-      return setError('Expiry must be MM/YY (example 05/27)');
-
-    const payload = {
-      payment_method: 'visa',
-      card_last4: digits.slice(-4),
-      card_expiry: cardExpiry,
-      // Optional (backend can ignore):
-      card_number: digits,
-      cvv: cardCvv,
-    };
-
-    setLoading(true);
+    
     try {
-      const res = await fetch(
-        `${API_BASE}/api/customers/${customerId}/checkout`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/checkout/create-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       const data = await res.json();
-      if (!res.ok || !data.ok)
-        throw new Error(data?.error || 'Checkout failed');
-
-      setSuccess('Order placed successfully ✅');
-
-      setCardNumber('');
-      setCardCvv('');
-      setCardExpiry('');
-
-      const ctrl = new AbortController();
-      await loadCart(ctrl.signal);
+      
+      if (!res.ok || !data.url) {
+        throw new Error(data?.error || 'Failed to create checkout session');
+      }
+      
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
     } catch (e) {
       setError(e.message || 'Checkout failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -344,63 +312,19 @@ export default function CartPage({ user }) {
               })}
             </div>
           )}
-        </div>
 
-        {/* RIGHT */}
-        <div className="ctPanel ctPanel--sticky ctPanel--tight">
-          <div className="ctPanelHead">
-            <div className="ctPanelTitle">Summary</div>
-          </div>
-
-          <div className="ctSummaryRow">
-            <span>Subtotal</span>
-            <strong>{formatMoney(subtotal)}</strong>
-          </div>
-
-          <div className="ctHr" />
-
-          <div className="ctField">
-            <label>Card Number</label>
-            <input
-              value={cardNumber}
-              onChange={(e) =>
-                setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 19))
-              }
-              placeholder="1234-5678-9012-3456"
-              inputMode="numeric"
-            />
-          </div>
-
-          <div className="ctField">
-            <label>CVV</label>
-            <input
-              value={cardCvv}
-              onChange={(e) =>
-                setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))
-              }
-              placeholder="667"
-              inputMode="numeric"
-            />
-          </div>
-
-          <div className="ctField">
-            <label>Expiry (MM/YY)</label>
-            <input
-              value={cardExpiry}
-              onChange={(e) => setCardExpiry(e.target.value.slice(0, 5))}
-              placeholder="05/27"
-            />
-          </div>
-
-          <button
-            className="btn-primary ctCheckoutBtn"
-            onClick={checkout}
-            disabled={loading || isEmpty}
-          >
-            Checkout <ArrowRight size={16} />
-          </button>
-
-          <div className="ctNote">Card info is validated before checkout.</div>
+          {!isEmpty && (
+            <div className="ctCheckoutSection">
+              <button
+                className="btn-primary ctCheckoutBtn"
+                onClick={handleStripeCheckout}
+                disabled={loading}
+              >
+                Checkout with Stripe <ArrowRight size={16} />
+              </button>
+              <div className="ctNote">Secure payment powered by Stripe.</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
