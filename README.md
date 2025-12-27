@@ -49,7 +49,13 @@ Final-Lab-DB/
     │   │   ├── BooksPage.jsx
     │   │   ├── CartPage.jsx
     │   │   ├── MyOrders.jsx
-    │   │   └── MySettingsPage.jsx
+    │   │   ├── MySettingsPage.jsx
+    │   │   ├── CustomerBooksPage.jsx
+    │   │   ├── WishlistPage.jsx
+    │   │   ├── OrdersPage.jsx
+    │   │   ├── ReportsPage.jsx
+    │   │   └── CheckoutSuccessPage.jsx
+    |   |   
     │   ├── components/
     │   └── Styles/
     └── vite.config.js
