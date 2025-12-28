@@ -52,8 +52,8 @@ router.post('/create-session', verifyToken, async (req, res) => {
             payment_method_types: ['card'],
             mode: 'payment',
             line_items: lineItems,
-            success_url: `${process.env.CLIENT_URL}/c/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL}/c/cart`,
+            success_url: `${process.env.FRONTEND_URL}/c/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/c/cart`,
             metadata: {
                 customerId,
             },
