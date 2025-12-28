@@ -9,7 +9,7 @@ const db = mysql.createPool({
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
     ssl: {
-        ca: fs.readFileSync(process.env.DB_CA)
+        ca: process.eventNames.DB_CA_VALUE
     },
     waitForConnections: true,
     connectionLimit: 10
