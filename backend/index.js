@@ -11,19 +11,13 @@ const app = express();
 /* =======================
    CORS — FINAL & CORRECT
 ======================= */
-/*
-  IMPORTANT:
-  - origin: true → reflects request origin
-  - credentials: true → required for cookies
-  - DO NOT restrict origins manually when using cookies
-*/
-app.use(cors({
+const corsOptions = {
   origin: true,
   credentials: true
-}));
+};
 
-// REQUIRED for preflight requests
-app.options("*", cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 /* =======================
    BODY PARSERS
@@ -33,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /* =======================
-   STRIPE WEBHOOK (RAW BODY)
+   STRIPE WEBHOOK (RAW)
 ======================= */
 app.post(
   "/api/stripe/webhook",
@@ -66,7 +60,7 @@ app.use("/api/admin", verifyAdmin, adminRoutes);
 app.use("/api/checkout", require("./routes/checkout"));
 
 /* =======================
-   HEALTH CHECK
+   HEALTH
 ======================= */
 app.get("/health", async (req, res) => {
   try {
@@ -80,10 +74,7 @@ app.get("/health", async (req, res) => {
       environment: process.env.NODE_ENV || "development"
     });
   } catch (err) {
-    res.status(503).json({
-      ok: false,
-      error: err.message
-    });
+    res.status(503).json({ ok: false, error: err.message });
   }
 });
 
