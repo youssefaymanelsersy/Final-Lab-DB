@@ -9,26 +9,20 @@ const { verifyAdmin } = require("./middleware/auth");
 const app = express();
 
 /* =======================
-   CORS — ABSOLUTELY FIRST
+   CORS — FINAL & CORRECT
 ======================= */
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://final-lab-db.vercel.app"
-];
-
+/*
+  IMPORTANT:
+  - origin: true → reflects request origin
+  - credentials: true → required for cookies
+  - DO NOT restrict origins manually when using cookies
+*/
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, origin); // MUST echo origin
-    }
-
-    return callback(null, false);
-  },
+  origin: true,
   credentials: true
 }));
 
+// REQUIRED for preflight requests
 app.options("*", cors());
 
 /* =======================
@@ -39,8 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /* =======================
-   STRIPE WEBHOOK (RAW)
-   MUST COME AFTER CORS
+   STRIPE WEBHOOK (RAW BODY)
 ======================= */
 app.post(
   "/api/stripe/webhook",
@@ -52,7 +45,10 @@ app.post(
    STATIC FILES
 ======================= */
 const avatarsDir = path.resolve(process.cwd(), "uploads", "avatars");
-app.use("/uploads/avatars", express.static(avatarsDir, { maxAge: "7d" }));
+app.use("/uploads/avatars", express.static(avatarsDir, {
+  maxAge: "7d",
+  index: false
+}));
 
 /* =======================
    ROUTES
@@ -70,12 +66,12 @@ app.use("/api/admin", verifyAdmin, adminRoutes);
 app.use("/api/checkout", require("./routes/checkout"));
 
 /* =======================
-   HEALTH
+   HEALTH CHECK
 ======================= */
 app.get("/health", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT VERSION() as version, DATABASE() as db"
+      "SELECT VERSION() AS version, DATABASE() AS db"
     );
 
     res.json({
@@ -84,7 +80,10 @@ app.get("/health", async (req, res) => {
       environment: process.env.NODE_ENV || "development"
     });
   } catch (err) {
-    res.status(503).json({ ok: false, error: err.message });
+    res.status(503).json({
+      ok: false,
+      error: err.message
+    });
   }
 });
 
