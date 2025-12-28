@@ -18,7 +18,7 @@ function setAuthCookie(res, token) {
   res.cookie("access_token", token, {
   httpOnly: true,
   secure: true,          // REQUIRED
-  sameSite: "none",      // REQUIRED for cross-site
+  sameSite: "lax",      // Adjust as needed
   maxAge: 7 * 24 * 60 * 60 * 1000
 });
 }
