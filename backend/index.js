@@ -9,7 +9,7 @@ const { verifyAdmin } = require("./middleware/auth");
 const app = express();
 
 /* =======================
-   CORS — FINAL & CORRECT
+  CORS — FINAL & CORRECT
 ======================= */
 const corsOptions = {
   origin: true,
@@ -18,14 +18,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 /* =======================
-   BODY PARSERS
+  BODY PARSERS
 ======================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /* =======================
-   STRIPE WEBHOOK (RAW)
+  STRIPE WEBHOOK (RAW)
 ======================= */
 app.post(
   "/api/stripe/webhook",
@@ -34,7 +34,7 @@ app.post(
 );
 
 /* =======================
-   STATIC FILES
+  STATIC FILES
 ======================= */
 const avatarsDir = path.resolve(process.cwd(), "uploads", "avatars");
 app.use("/uploads/avatars", express.static(avatarsDir, {
@@ -43,7 +43,7 @@ app.use("/uploads/avatars", express.static(avatarsDir, {
 }));
 
 /* =======================
-   ROUTES
+  ROUTES
 ======================= */
 const pool = require("./db");
 const bookRoutes = require("./routes/books");
@@ -58,7 +58,7 @@ app.use("/api/admin", verifyAdmin, adminRoutes);
 app.use("/api/checkout", require("./routes/checkout"));
 
 /* =======================
-   HEALTH
+  HEALTH
 ======================= */
 app.get("/health", async (req, res) => {
   try {
@@ -77,7 +77,7 @@ app.get("/health", async (req, res) => {
 });
 
 /* =======================
-   START SERVER
+  START SERVER
 ======================= */
 const PORT = Number(process.env.PORT || 8080);
 app.listen(PORT, () => {

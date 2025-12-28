@@ -5,7 +5,6 @@ const { verifyToken } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 /**
  * POST /api/checkout/create-session
  */
@@ -53,8 +52,8 @@ router.post('/create-session', verifyToken, async (req, res) => {
             payment_method_types: ['card'],
             mode: 'payment',
             line_items: lineItems,
-            success_url: `${FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${FRONTEND_URL}/cart`,
+            success_url: `${process.env.CLIENT_URL}/c/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/c/cart`,
             metadata: {
                 customerId,
             },
@@ -91,7 +90,7 @@ router.post('/complete-order', async (req, res) => {
             return res.status(400).json({ error: 'Payment not completed' });
         }
 
-        // Try to determine customerId from JWT cookie first (preferred)
+        // Determine customer id: prefer JWT cookie, otherwise use session.metadata
         let customerIdFromToken = null;
         try {
             const token = req.cookies?.access_token;
@@ -100,12 +99,11 @@ router.post('/complete-order', async (req, res) => {
                 customerIdFromToken = Number(decoded.id);
             }
         } catch (e) {
-            // ignore token errors — we'll try metadata fallback
+            // ignore token errors and fallback to metadata
         }
 
         const customerIdFromMetadata = session.metadata ? Number(session.metadata.customerId) : null;
 
-        // Decide which customerId to use. If token exists but doesn't match metadata, reject.
         let customerId;
         if (customerIdFromToken) {
             if (customerIdFromMetadata && customerIdFromMetadata !== customerIdFromToken) {
@@ -113,7 +111,6 @@ router.post('/complete-order', async (req, res) => {
             }
             customerId = customerIdFromToken;
         } else if (customerIdFromMetadata) {
-            // No auth cookie (common after 3rd-party redirect). Use metadata as fallback.
             customerId = customerIdFromMetadata;
         } else {
             return res.status(401).json({ error: 'Unable to determine customer for this session' });
@@ -129,7 +126,7 @@ router.post('/complete-order', async (req, res) => {
             return res.json({ ok: true, orderId: existing.id, message: 'Order already exists' });
         }
 
-        // Extract card details from Stripe (best-effort)
+        // Extract card details from Stripe
         let cardLast4 = '0000';
         let cardExpiry = '12/99';
         try {
@@ -165,12 +162,14 @@ router.post('/complete-order', async (req, res) => {
             try {
                 const [orderResult] = await conn.query(
                     `INSERT INTO orders (customer_id, order_date, total_price, stripe_session_id, card_last4, card_expiry)
-                     VALUES (?, NOW(), ?, ?, ?, ?)`,
+                    VALUES (?, NOW(), ?, ?, ?, ?)`,
                     [customerId, total, session_id, cardLast4, cardExpiry]
                 );
                 orderId = orderResult.insertId;
             } catch (e) {
                 if (e && e.code === 'ER_DUP_ENTRY') {
+                    // Another process already created the order for this session.
+                    // Roll back this transaction and return success using existing order.
                     await conn.rollback();
                     const [[existingAfter]] = await pool.query(
                         'SELECT id FROM orders WHERE stripe_session_id = ?',
@@ -180,6 +179,7 @@ router.post('/complete-order', async (req, res) => {
                         console.log('ℹ️ Order already exists for session, returning OK:', existingAfter.id);
                         return res.json({ ok: true, orderId: existingAfter.id, message: 'Order already exists' });
                     }
+                    // If we still cannot find it, bubble up error
                     throw e;
                 }
                 throw e;
@@ -189,54 +189,54 @@ router.post('/complete-order', async (req, res) => {
             await conn.query(
                 `INSERT INTO sales (order_id, isbn, qty, amount, sale_date)
                  SELECT ?, b.isbn, ci.qty, (b.selling_price * ci.qty), NOW()
-                 FROM carts c
-                 JOIN cart_items ci ON ci.cart_id = c.id
-                 JOIN books b ON b.isbn = ci.isbn
-                 WHERE c.customer_id = ?`,
+                FROM carts c
+                JOIN cart_items ci ON ci.cart_id = c.id
+                JOIN books b ON b.isbn = ci.isbn
+                WHERE c.customer_id = ?`,
                 [orderId, customerId]
             );
 
             // 2.a) Create order_items for receipt details
             await conn.query(
                 `INSERT INTO order_items (order_id, isbn, book_title, unit_price, qty)
-                 SELECT ?, b.isbn, b.title, b.selling_price, ci.qty
-                 FROM carts c
-                 JOIN cart_items ci ON ci.cart_id = c.id
-                 JOIN books b ON b.isbn = ci.isbn
-                 WHERE c.customer_id = ?`,
+                SELECT ?, b.isbn, b.title, b.selling_price, ci.qty
+                FROM carts c
+                JOIN cart_items ci ON ci.cart_id = c.id
+                JOIN books b ON b.isbn = ci.isbn
+                WHERE c.customer_id = ?`,
                 [orderId, customerId]
             );
 
             // 2.5) Decrement book stock by quantities purchased
             await conn.query(
                 `UPDATE books b
-                 JOIN carts c ON c.customer_id = ?
-                 JOIN cart_items ci ON ci.cart_id = c.id AND ci.isbn = b.isbn
-                 SET b.stock_qty = GREATEST(0, b.stock_qty - ci.qty)`,
+                JOIN carts c ON c.customer_id = ?
+                JOIN cart_items ci ON ci.cart_id = c.id AND ci.isbn = b.isbn
+                SET b.stock_qty = GREATEST(0, b.stock_qty - ci.qty)`,
                 [customerId]
             );
 
-            // 2.6) Auto-create pending publisher order when threshold crossed and none pending
-            await conn.query(
-                `INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
-                 SELECT b.isbn, b.publisher_id, (b.threshold * 3), 'Pending'
-                 FROM carts c
-                 JOIN cart_items ci ON ci.cart_id = c.id
-                 JOIN books b ON b.isbn = ci.isbn
-                 WHERE c.customer_id = ?
-                   AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
-                   AND NOT EXISTS (
-                     SELECT 1 FROM publisher_orders po
-                     WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
-                   )`,
-                [customerId]
-            );
+                        // 2.6) Auto-create pending publisher order when threshold crossed and none pending
+                        await conn.query(
+                                `INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
+                                 SELECT b.isbn, b.publisher_id, (b.threshold * 3), 'Pending'
+                                FROM carts c
+                                JOIN cart_items ci ON ci.cart_id = c.id
+                                JOIN books b ON b.isbn = ci.isbn
+                                WHERE c.customer_id = ?
+                                    AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
+                                    AND NOT EXISTS (
+                                        SELECT 1 FROM publisher_orders po
+                                        WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
+                                    )`,
+                                [customerId]
+                        );
 
             // 3) Clear cart items
             await conn.query(
                 `DELETE ci FROM cart_items ci
-                 JOIN carts c ON c.id = ci.cart_id
-                 WHERE c.customer_id = ?`,
+                JOIN carts c ON c.id = ci.cart_id
+                WHERE c.customer_id = ?`,
                 [customerId]
             );
 

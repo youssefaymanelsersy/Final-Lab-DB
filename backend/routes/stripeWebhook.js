@@ -104,15 +104,15 @@ module.exports = async (req, res) => {
       await conn.query(
         `INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
          SELECT b.isbn, b.publisher_id, (b.threshold * 3), 'Pending'
-         FROM carts c
-         JOIN cart_items ci ON ci.cart_id = c.id
-         JOIN books b ON b.isbn = ci.isbn
-         WHERE c.customer_id = ?
-           AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
-           AND NOT EXISTS (
-             SELECT 1 FROM publisher_orders po
-             WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
-           )`,
+        FROM carts c
+        JOIN cart_items ci ON ci.cart_id = c.id
+        JOIN books b ON b.isbn = ci.isbn
+        WHERE c.customer_id = ?
+          AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
+          AND NOT EXISTS (
+            SELECT 1 FROM publisher_orders po
+            WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
+          )`,
         [customerId]
       );
 
