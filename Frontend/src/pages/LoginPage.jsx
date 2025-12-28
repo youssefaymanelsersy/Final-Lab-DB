@@ -3,7 +3,11 @@ import { useMemo, useState } from 'react';
 import '../Styles/LoginPage.css';
 import bookphoto from '../assets/bookphoto2.jpeg';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE is not defined");
+}
 
 export default function LoginPage({ onLogin }) {
   const [mode, setMode] = useState('login');

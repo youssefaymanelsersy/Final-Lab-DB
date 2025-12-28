@@ -3,7 +3,11 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Heart, Trash2, ShoppingCart } from 'lucide-react';
 import '../Styles/WishlistPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE is not defined");
+}
 
 const formatPrice = (value) =>
     Number(value ?? 0).toLocaleString(undefined, {

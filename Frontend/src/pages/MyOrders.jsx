@@ -4,7 +4,11 @@ import { Package, Calendar, CreditCard, X, Receipt, MapPin, User, RotateCcw } fr
 import { Download } from 'lucide-react';
 import '../Styles/MyOrders.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE is not defined");
+}
 
 export default function MyOrders() {
   const { user } = useOutletContext();

@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { Search, Bell, Download, RefreshCcw, ArrowUpRight } from 'lucide-react';
 import '../Styles/ReportsPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE is not defined");
+}
 
 function KpiCard({ tone = 'plain', title, value, subLeft, subRight, right }) {
   return (
