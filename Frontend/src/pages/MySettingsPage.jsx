@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 import {
   Camera,
   Mail,
@@ -239,7 +240,8 @@ export default function MySettingsPage({ user, onUserChange }) {
 
   function resolveAvatar(url) {
     if (!url) return '';
-    return url.startsWith('http') ? url : `${url}`;
+    if (url.startsWith('http')) return url;
+    return `${API_BASE}${url}`;
   }
 
   async function handleAvatarUpload() {

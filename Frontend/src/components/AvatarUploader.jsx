@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export default function AvatarUploader({ user, onUpdated }) {
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -8,7 +10,10 @@ export default function AvatarUploader({ user, onUpdated }) {
 
     if (!user?.id) return null;
     const raw = preview || user.avatar_url || 'https://via.placeholder.com/128?text=Avatar';
-    const current = typeof raw === 'string' && raw.startsWith('/') ? `${raw}` : raw;
+    const current =
+        typeof raw === 'string' && raw.startsWith('/')
+            ? `${API_BASE}${raw}`
+            : raw;
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
