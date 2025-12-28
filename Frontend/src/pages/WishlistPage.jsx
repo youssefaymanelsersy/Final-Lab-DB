@@ -3,12 +3,6 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Heart, Trash2, ShoppingCart } from 'lucide-react';
 import '../Styles/WishlistPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 const formatPrice = (value) =>
     Number(value ?? 0).toLocaleString(undefined, {
         minimumFractionDigits: 2,
@@ -28,7 +22,7 @@ export default function WishlistPage() {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${API_BASE}/api/customers/${customerId}/wishlist`, {
+            const res = await fetch(`/api/customers/${customerId}/wishlist`, {
                 credentials: 'include',
             });
             const data = await res.json();
@@ -54,7 +48,7 @@ export default function WishlistPage() {
 
     async function removeFromWishlist(isbn) {
         try {
-            const res = await fetch(`${API_BASE}/api/customers/${customerId}/wishlist/${isbn}`, {
+            const res = await fetch(`/api/customers/${customerId}/wishlist/${isbn}`, {
                 method: 'DELETE',
                 credentials: 'include',
             });
@@ -72,7 +66,7 @@ export default function WishlistPage() {
 
     async function addToCart(isbn) {
         try {
-            const res = await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
+            const res = await fetch(`/api/customers/${customerId}/cart`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

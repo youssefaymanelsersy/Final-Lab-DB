@@ -13,12 +13,6 @@ import {
 } from 'lucide-react';
 import '../Styles/MySettingsPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function MySettingsPage({ user, onUserChange }) {
   const fileRef = useRef(null);
 
@@ -73,7 +67,7 @@ export default function MySettingsPage({ user, onUserChange }) {
       setLoading(true);
       setMessage(null);
 
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}`, {
+      const res = await fetch(`/api/customers/${user.id}`, {
         credentials: 'include',
       });
 
@@ -124,7 +118,7 @@ export default function MySettingsPage({ user, onUserChange }) {
       setSavingProfile(true);
       setMessage(null);
 
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}`, {
+      const res = await fetch(`/api/customers/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -188,7 +182,7 @@ export default function MySettingsPage({ user, onUserChange }) {
       setSavingPass(true);
       setMessage(null);
 
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}/password`, {
+      const res = await fetch(`/api/customers/${user.id}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -245,7 +239,7 @@ export default function MySettingsPage({ user, onUserChange }) {
 
   function resolveAvatar(url) {
     if (!url) return '';
-    return url.startsWith('http') ? url : `${API_BASE}${url}`;
+    return url.startsWith('http') ? url : `${url}`;
   }
 
   async function handleAvatarUpload() {
@@ -254,7 +248,7 @@ export default function MySettingsPage({ user, onUserChange }) {
       setMessage(null);
       const fd = new FormData();
       fd.append('avatar', avatarFile);
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}/avatar`, {
+      const res = await fetch(`/api/customers/${user.id}/avatar`, {
         method: 'POST',
         body: fd,
         credentials: 'include',

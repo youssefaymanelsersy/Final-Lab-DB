@@ -19,25 +19,6 @@ import WishlistPage from './pages/WishlistPage.jsx';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage.jsx';
 
 
-
-function Placeholder({ title }) {
-  return (
-    <div style={{ padding: 24 }}>
-      <h2>{title}</h2>
-      <p>Coming soon...</p>
-    </div>
-  );
-}
-
-
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
-
-
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +27,7 @@ export default function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/auth/me`, {
+        const res = await fetch(`/api/auth/me`, {
           credentials: 'include',
         });
         const data = await res.json();
@@ -66,7 +47,7 @@ export default function App() {
   const handleLogout = async () => {
     try {
       if (user?.role === 'customer' && user?.id) {
-        await fetch(`${API_BASE}/api/customers/${user.id}/logout`, {
+        await fetch(`/api/customers/${user.id}/logout`, {
           method: 'POST',
           credentials: 'include',
         });
@@ -76,7 +57,7 @@ export default function App() {
     }
 
     try {
-      await fetch(`${API_BASE}/api/auth/logout`, {
+      await fetch(`/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

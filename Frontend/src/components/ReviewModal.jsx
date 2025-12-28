@@ -3,12 +3,6 @@ import { X, Send } from 'lucide-react';
 import StarRating from './StarRating';
 import '../Styles/ReviewModal.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function ReviewModal({ book, user, onClose, onSubmitted }) {
     const [rating, setRating] = useState(5);
     const [reviewText, setReviewText] = useState('');
@@ -27,7 +21,7 @@ export default function ReviewModal({ book, user, onClose, onSubmitted }) {
             setSubmitting(true);
             setError('');
 
-            const res = await fetch(`${API_BASE}/api/books/${book.isbn}/reviews`, {
+            const res = await fetch(`/api/books/${book.isbn}/reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

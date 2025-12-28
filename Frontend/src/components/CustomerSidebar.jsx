@@ -10,20 +10,13 @@ import {
 } from 'lucide-react';
 import '../Styles/Sidebar.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
-
 export default function CustomerSidebar({ user, onLogout }) {
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || null);
 
   const resolvedAvatar = useMemo(() => {
     if (!avatarUrl) return null;
-    return avatarUrl.startsWith('/') ? `${API_BASE}${avatarUrl}` : avatarUrl;
+    return avatarUrl.startsWith('/') ? `${avatarUrl}` : avatarUrl;
   }, [avatarUrl]);
 
   const initials = String(
@@ -41,7 +34,7 @@ export default function CustomerSidebar({ user, onLogout }) {
     async function fetchProfile() {
       if (!user?.id || avatarUrl) return;
       try {
-        const res = await fetch(`${API_BASE}/api/customers/${user.id}`, {
+        const res = await fetch(`/api/customers/${user.id}`, {
           credentials: 'include',
         });
         const data = await res.json();

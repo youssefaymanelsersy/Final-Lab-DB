@@ -7,12 +7,6 @@ import CategoryPicker from '../components/CategoryPicker.jsx';
 import ViewToggle from '../components/ViewToggle.jsx';
 import '../Styles/BooksPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function BooksPage() {
   const [cat, setCat] = useState('all');
   const [view, setView] = useState('grid');
@@ -79,7 +73,7 @@ export default function BooksPage() {
       if (cat !== 'all') body.category = cat;
       if (search.trim()) body.q = search.trim();
 
-      const res = await fetch(`${API_BASE}/api/books`, {
+      const res = await fetch(`/api/books`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -112,7 +106,7 @@ export default function BooksPage() {
     e.preventDefault();
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/books/${editingBook.isbn}`,
+        `/api/admin/books/${editingBook.isbn}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -140,7 +134,7 @@ export default function BooksPage() {
     e.preventDefault();
     setAddBookError('');
     try {
-      const res = await fetch(`${API_BASE}/api/admin/books`, {
+      const res = await fetch(`/api/admin/books`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

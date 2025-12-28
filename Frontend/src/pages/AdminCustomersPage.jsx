@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react';
 import ViewToggle from '../components/ViewToggle.jsx';
 import '../Styles/BooksPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function AdminCustomersPage() {
     const [customers, setCustomers] = useState([]);
     const [view, setView] = useState('grid');
@@ -18,7 +12,7 @@ export default function AdminCustomersPage() {
         const fetchCustomers = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${API_BASE}/api/admin/customers`, { credentials: 'include' });
+                const res = await fetch(`/api/admin/customers`, { credentials: 'include' });
                 const data = await res.json();
                 if (data.ok) setCustomers(data.data);
                 else setError(data.error || 'Failed to load customers');
@@ -54,7 +48,7 @@ export default function AdminCustomersPage() {
                                 src={
                                     c.avatar_url
                                         ? c.avatar_url.startsWith('/api/customers/')
-                                            ? `${API_BASE}${c.avatar_url}`
+                                            ? `${c.avatar_url}`
                                             : c.avatar_url
                                         : '/default-avatar.png'
                                 }

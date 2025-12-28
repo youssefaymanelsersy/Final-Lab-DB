@@ -3,12 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
 import '../Styles/CheckoutSuccessPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function CheckoutSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -25,7 +19,7 @@ export default function CheckoutSuccessPage() {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/checkout/complete-order`, {
+        const res = await fetch(`/api/checkout/complete-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

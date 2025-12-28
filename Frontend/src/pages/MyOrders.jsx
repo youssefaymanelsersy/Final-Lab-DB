@@ -4,12 +4,6 @@ import { Package, Calendar, CreditCard, X, Receipt, MapPin, User, RotateCcw } fr
 import { Download } from 'lucide-react';
 import '../Styles/MyOrders.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function MyOrders() {
   const { user } = useOutletContext();
   const [orders, setOrders] = useState([]);
@@ -22,7 +16,7 @@ export default function MyOrders() {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}/orders`, {
+      const res = await fetch(`/api/customers/${user.id}/orders`, {
         credentials: 'include'
       });
       const data = await res.json();
@@ -105,7 +99,7 @@ export default function MyOrders() {
   const handleReorder = async (orderId) => {
     try {
       setReorderingId(orderId);
-      const res = await fetch(`${API_BASE}/api/customers/${user.id}/orders/${orderId}/reorder`, {
+      const res = await fetch(`/api/customers/${user.id}/orders/${orderId}/reorder`, {
         method: 'POST',
         credentials: 'include',
       });

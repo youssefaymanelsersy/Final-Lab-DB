@@ -4,12 +4,6 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 
 import '../Styles/CartPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function CartPage({ user }) {
   const navigate = useNavigate();
   const customerId = user?.id;
@@ -58,7 +52,7 @@ export default function CartPage({ user }) {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
+      const res = await fetch(`/api/customers/${customerId}/cart`, {
         credentials: 'include',
         signal,
       });
@@ -89,7 +83,7 @@ export default function CartPage({ user }) {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
+      const res = await fetch(`/api/customers/${customerId}/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -114,14 +108,14 @@ export default function CartPage({ user }) {
     setError('');
     setSuccess('');
     try {
-      await fetch(`${API_BASE}/api/customers/${customerId}/cart/${isbn}`, {
+      await fetch(`/api/customers/${customerId}/cart/${isbn}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
       if (nextQty > 0) {
         const res = await fetch(
-          `${API_BASE}/api/customers/${customerId}/cart`,
+          `/api/customers/${customerId}/cart`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -154,7 +148,7 @@ export default function CartPage({ user }) {
     try {
       await Promise.all(
         items.map((it) =>
-          fetch(`${API_BASE}/api/customers/${customerId}/cart/${it.isbn}`, {
+          fetch(`/api/customers/${customerId}/cart/${it.isbn}`, {
             method: 'DELETE',
             credentials: 'include',
           })
@@ -178,7 +172,7 @@ export default function CartPage({ user }) {
     setSuccess('');
     
     try {
-      const res = await fetch(`${API_BASE}/api/checkout/create-session`, {
+      const res = await fetch(`/api/checkout/create-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'

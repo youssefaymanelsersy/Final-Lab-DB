@@ -7,12 +7,6 @@ import '../Styles/BooksPage.css';
 import '../Styles/FilterPanel.css';
 import {useOutletContext} from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 // 1. Accept the 'user' prop from App.jsx
 export default function CustomerBooksPage() {
   const { user } = useOutletContext();
@@ -75,7 +69,7 @@ export default function CustomerBooksPage() {
       if (cat !== 'all') body.category = cat;
       if (search.trim()) body.q = search.trim();
 
-      const res = await fetch(`${API_BASE}/api/books`, {
+      const res = await fetch(`/api/books`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -99,7 +93,7 @@ export default function CustomerBooksPage() {
     if (!customerId) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
+      const res = await fetch(`/api/customers/${customerId}/cart`, {
         credentials: 'include',
       });
       const data = await res.json();
@@ -119,7 +113,7 @@ export default function CustomerBooksPage() {
     if (!customerId) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/customers/${customerId}/wishlist`, {
+      const res = await fetch(`/api/customers/${customerId}/wishlist`, {
         credentials: 'include',
       });
       const data = await res.json();
@@ -150,12 +144,12 @@ export default function CustomerBooksPage() {
 
     try {
       if (isInWishlist) {
-        await fetch(`${API_BASE}/api/customers/${customerId}/wishlist/${isbn}`, {
+        await fetch(`/api/customers/${customerId}/wishlist/${isbn}`, {
           method: 'DELETE',
           credentials: 'include',
         });
       } else {
-        await fetch(`${API_BASE}/api/customers/${customerId}/wishlist/${isbn}`, {
+        await fetch(`/api/customers/${customerId}/wishlist/${isbn}`, {
           method: 'POST',
           credentials: 'include',
         });
@@ -178,7 +172,7 @@ export default function CustomerBooksPage() {
     setCartQty((prev) => ({ ...prev, [isbn]: (prev[isbn] || 0) + 1 }));
 
     try {
-      await fetch(`${API_BASE}/api/customers/${customerId}/cart`, {
+      await fetch(`/api/customers/${customerId}/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -200,7 +194,7 @@ export default function CustomerBooksPage() {
     });
 
     try {
-      await fetch(`${API_BASE}/api/customers/${customerId}/cart/${isbn}`, {
+      await fetch(`/api/customers/${customerId}/cart/${isbn}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

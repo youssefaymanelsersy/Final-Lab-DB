@@ -11,12 +11,6 @@ import {
 } from 'lucide-react';
 import '../Styles/OrdersPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function OrdersPage() {
   // --- STATE MANAGEMENT ---
   const [orders, setOrders] = useState([]);
@@ -44,7 +38,7 @@ export default function OrdersPage() {
       });
 
       const res = await fetch(
-        `${API_BASE}/api/admin/publisher-orders?${query}`,
+        `/api/admin/publisher-orders?${query}`,
         { credentials: 'include' }
       );
       const data = await res.json();
@@ -74,7 +68,7 @@ export default function OrdersPage() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/publisher-orders/${id}/confirm`,
+        `/api/admin/publisher-orders/${id}/confirm`,
         {
           method: 'POST',
           credentials: 'include',
@@ -96,7 +90,7 @@ export default function OrdersPage() {
     e.preventDefault(); // Stop page reload
     try {
       // API call happens only here, AFTER you fill the form and submit
-      const res = await fetch(`${API_BASE}/api/admin/publisher-orders`, {
+      const res = await fetch(`/api/admin/publisher-orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
