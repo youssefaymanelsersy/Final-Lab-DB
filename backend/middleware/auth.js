@@ -10,6 +10,11 @@ if (!SECRET_KEY) {
  * Attaches decoded user to req.user
  */
 function verifyToken(req, res, next) {
+    // ✅ ALLOW CORS PREFLIGHT REQUESTS
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+
     const token = req.cookies?.access_token;
 
     if (!token) {
@@ -26,6 +31,7 @@ function verifyToken(req, res, next) {
                 error: 'Invalid or expired token. Please login again.'
             });
         }
+
         req.user = decoded;
         next();
     });
@@ -55,19 +61,15 @@ function requireAdmin(req, res, next) {
 
 /**
  * Combined middleware: verify token AND require admin role
- * Use this for admin routes
  */
 function verifyAdmin(req, res, next) {
-    verifyToken(req, res, (err) => {
-        if (err) return;
+    verifyToken(req, res, () => {
         requireAdmin(req, res, next);
     });
 }
 
 /**
  * Middleware to verify user is accessing their own resource
- * Must be used AFTER verifyToken
- * Checks if req.user.id matches req.params.id
  */
 function verifyOwnership(req, res, next) {
     if (!req.user) {
@@ -84,7 +86,6 @@ function verifyOwnership(req, res, next) {
         return next();
     }
 
-    // Customer can only access their own resource
     if (req.user.id !== requestedId) {
         return res.status(403).json({
             ok: false,
@@ -97,11 +98,9 @@ function verifyOwnership(req, res, next) {
 
 /**
  * Combined middleware: verify token AND ownership
- * Use this for customer resource routes
  */
 function verifyCustomer(req, res, next) {
-    verifyToken(req, res, (err) => {
-        if (err) return;
+    verifyToken(req, res, () => {
         verifyOwnership(req, res, next);
     });
 }
