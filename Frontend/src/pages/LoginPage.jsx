@@ -3,8 +3,6 @@ import { useMemo, useState } from 'react';
 import '../Styles/LoginPage.css';
 import bookphoto from '../assets/bookphoto2.jpeg';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
 export default function LoginPage({ onLogin }) {
   const [mode, setMode] = useState('login');
   const isSignup = mode === 'signup';
@@ -63,7 +61,7 @@ export default function LoginPage({ onLogin }) {
     setLoginLoading(true);
 
     try {
-      const data = await postJSON(`${API_BASE}/api/auth/login`, {
+      const data = await postJSON(`/api/auth/login`, {
         username: loginUsername.trim(),
         password: loginPass,
       });
@@ -83,7 +81,7 @@ export default function LoginPage({ onLogin }) {
     setSuLoading(true);
 
     try {
-      await postJSON(`${API_BASE}/api/auth/signup`, {
+      await postJSON(`/api/auth/signup`, {
         username: suUsername.trim(),
         password: suPass,
         first_name: suFirst.trim(),
