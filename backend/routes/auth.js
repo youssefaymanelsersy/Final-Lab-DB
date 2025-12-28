@@ -15,12 +15,12 @@ function signToken(payload) {
 }
 
 function setAuthCookie(res, token) {
-  res.cookie('access_token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  res.cookie("access_token", token, {
+  httpOnly: true,
+  secure: true,          // REQUIRED
+  sameSite: "none",      // REQUIRED for cross-site
+  maxAge: 7 * 24 * 60 * 60 * 1000
+});
 }
 
 // --- Routes ---
