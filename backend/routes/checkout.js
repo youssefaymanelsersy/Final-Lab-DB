@@ -4,7 +4,7 @@ const pool = require('../db');
 const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
-
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 /**
  * POST /api/checkout/create-session
  */
@@ -52,8 +52,8 @@ router.post('/create-session', verifyToken, async (req, res) => {
             payment_method_types: ['card'],
             mode: 'payment',
             line_items: lineItems,
-            success_url: `${process.env.CLIENT_URL}/c/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL}/c/cart`,
+            success_url: `${FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${FRONTEND_URL}/cart`,
             metadata: {
                 customerId,
             },
