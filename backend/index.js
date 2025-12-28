@@ -16,10 +16,27 @@ app.post(
 );
 
 app.use(express.json());
+import cors from "cors";
+
+const allowedOrigins = [
+  "http://localhost:5173",               // local dev
+  "https://final-lab-db.vercel.app"       // Vercel production
+];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true
+  origin: function (origin, callback) {
+    // allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("CORS not allowed"));
+    }
+  },
+  credentials: true
 }));
+
 app.use(cookieParser());
 
 // Serve uploaded avatars statically
