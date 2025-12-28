@@ -83,20 +83,20 @@ module.exports = async (req, res) => {
       // 2.a) Create order_items for receipt details
       await conn.query(
         `INSERT INTO order_items (order_id, isbn, book_title, unit_price, qty)
-         SELECT ?, b.isbn, b.title, b.selling_price, ci.qty
-         FROM carts c
-         JOIN cart_items ci ON ci.cart_id = c.id
-         JOIN books b ON b.isbn = ci.isbn
-         WHERE c.customer_id = ?`,
+        SELECT ?, b.isbn, b.title, b.selling_price, ci.qty
+        FROM carts c
+        JOIN cart_items ci ON ci.cart_id = c.id
+        JOIN books b ON b.isbn = ci.isbn
+        WHERE c.customer_id = ?`,
         [orderId, customerId]
       );
 
       // 2.5) decrement stock based on purchased quantities
       await conn.query(
         `UPDATE books b
-         JOIN carts c ON c.customer_id = ?
-         JOIN cart_items ci ON ci.cart_id = c.id AND ci.isbn = b.isbn
-         SET b.stock_qty = GREATEST(0, b.stock_qty - ci.qty)`,
+        JOIN carts c ON c.customer_id = ?
+        JOIN cart_items ci ON ci.cart_id = c.id AND ci.isbn = b.isbn
+        SET b.stock_qty = GREATEST(0, b.stock_qty - ci.qty)`,
         [customerId]
       );
 

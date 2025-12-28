@@ -108,8 +108,8 @@ router.put('/:id', verifyCustomer, ensureSameCustomer, async (req, res) => {
 
     await pool.query(
       `UPDATE customers
-       SET username = ?, first_name = ?, last_name = ?, email = ?, phone = ?, shipping_address = ?
-       WHERE id = ?`,
+      SET username = ?, first_name = ?, last_name = ?, email = ?, phone = ?, shipping_address = ?
+      WHERE id = ?`,
       [username, first_name, last_name, email, phone, shipping_address, id]
     );
 

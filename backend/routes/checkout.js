@@ -2,6 +2,7 @@ const express = require('express');
 const stripe = require('./stripe');
 const pool = require('../db');
 const { verifyToken } = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -71,24 +72,51 @@ router.post('/create-session', verifyToken, async (req, res) => {
  * POST /api/checkout/complete-order
  * Complete order after successful payment (fallback for local dev without webhooks)
  */
-router.post('/complete-order', verifyToken, async (req, res) => {
+router.post('/complete-order', async (req, res) => {
     if (!stripe) {
         return res.status(503).json({ error: 'Stripe is not configured' });
     }
 
     try {
         const { session_id } = req.body;
-        const customerId = req.user.id;
 
         if (!session_id) {
             return res.status(400).json({ error: 'session_id is required' });
         }
 
-        // Verify session with Stripe
+        // Retrieve session from Stripe
         const session = await stripe.checkout.sessions.retrieve(session_id);
 
         if (!session || session.payment_status !== 'paid') {
             return res.status(400).json({ error: 'Payment not completed' });
+        }
+
+        // Try to determine customerId from JWT cookie first (preferred)
+        let customerIdFromToken = null;
+        try {
+            const token = req.cookies?.access_token;
+            if (token) {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                customerIdFromToken = Number(decoded.id);
+            }
+        } catch (e) {
+            // ignore token errors — we'll try metadata fallback
+        }
+
+        const customerIdFromMetadata = session.metadata ? Number(session.metadata.customerId) : null;
+
+        // Decide which customerId to use. If token exists but doesn't match metadata, reject.
+        let customerId;
+        if (customerIdFromToken) {
+            if (customerIdFromMetadata && customerIdFromMetadata !== customerIdFromToken) {
+                return res.status(403).json({ error: 'Session does not belong to authenticated user' });
+            }
+            customerId = customerIdFromToken;
+        } else if (customerIdFromMetadata) {
+            // No auth cookie (common after 3rd-party redirect). Use metadata as fallback.
+            customerId = customerIdFromMetadata;
+        } else {
+            return res.status(401).json({ error: 'Unable to determine customer for this session' });
         }
 
         // Check if order already exists for this session
@@ -101,7 +129,7 @@ router.post('/complete-order', verifyToken, async (req, res) => {
             return res.json({ ok: true, orderId: existing.id, message: 'Order already exists' });
         }
 
-        // Extract card details from Stripe
+        // Extract card details from Stripe (best-effort)
         let cardLast4 = '0000';
         let cardExpiry = '12/99';
         try {
@@ -143,8 +171,6 @@ router.post('/complete-order', verifyToken, async (req, res) => {
                 orderId = orderResult.insertId;
             } catch (e) {
                 if (e && e.code === 'ER_DUP_ENTRY') {
-                    // Another process already created the order for this session.
-                    // Roll back this transaction and return success using existing order.
                     await conn.rollback();
                     const [[existingAfter]] = await pool.query(
                         'SELECT id FROM orders WHERE stripe_session_id = ?',
@@ -154,7 +180,6 @@ router.post('/complete-order', verifyToken, async (req, res) => {
                         console.log('ℹ️ Order already exists for session, returning OK:', existingAfter.id);
                         return res.json({ ok: true, orderId: existingAfter.id, message: 'Order already exists' });
                     }
-                    // If we still cannot find it, bubble up error
                     throw e;
                 }
                 throw e;
@@ -191,21 +216,21 @@ router.post('/complete-order', verifyToken, async (req, res) => {
                 [customerId]
             );
 
-                        // 2.6) Auto-create pending publisher order when threshold crossed and none pending
-                        await conn.query(
-                                `INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
-                                 SELECT b.isbn, b.publisher_id, (b.threshold * 3), 'Pending'
-                                 FROM carts c
-                                 JOIN cart_items ci ON ci.cart_id = c.id
-                                 JOIN books b ON b.isbn = ci.isbn
-                                 WHERE c.customer_id = ?
-                                     AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
-                                     AND NOT EXISTS (
-                                         SELECT 1 FROM publisher_orders po
-                                         WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
-                                     )`,
-                                [customerId]
-                        );
+            // 2.6) Auto-create pending publisher order when threshold crossed and none pending
+            await conn.query(
+                `INSERT INTO publisher_orders (isbn, publisher_id, order_qty, status)
+                 SELECT b.isbn, b.publisher_id, (b.threshold * 3), 'Pending'
+                 FROM carts c
+                 JOIN cart_items ci ON ci.cart_id = c.id
+                 JOIN books b ON b.isbn = ci.isbn
+                 WHERE c.customer_id = ?
+                   AND (GREATEST(0, b.stock_qty - ci.qty)) < b.threshold
+                   AND NOT EXISTS (
+                     SELECT 1 FROM publisher_orders po
+                     WHERE po.isbn = b.isbn AND po.status = 'Pending' LIMIT 1
+                   )`,
+                [customerId]
+            );
 
             // 3) Clear cart items
             await conn.query(
