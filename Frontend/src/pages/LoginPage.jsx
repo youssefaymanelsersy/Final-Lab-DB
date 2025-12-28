@@ -5,10 +5,6 @@ import bookphoto from '../assets/bookphoto2.jpeg';
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-if (!API_BASE) {
-  throw new Error("VITE_API_BASE is not defined");
-}
-
 export default function LoginPage({ onLogin }) {
   const [mode, setMode] = useState('login');
   const isSignup = mode === 'signup';
