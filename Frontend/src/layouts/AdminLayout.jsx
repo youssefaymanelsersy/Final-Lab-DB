@@ -1,11 +1,8 @@
-import Sidebar from '../components/Sidebar.jsx';
-import { Outlet } from 'react-router-dom';
-
 export default function AdminLayout({ user, onLogout }) {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
+    <div className="layout-container">
       <Sidebar user={user} onLogout={onLogout} />
-      <main style={{ flex: 1, overflowY: 'auto' }}>
+      <main className="main-content">
         <Outlet />
       </main>
     </div>

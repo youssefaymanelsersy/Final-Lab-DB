@@ -166,3 +166,53 @@
   font-size:12px;
   color: var(--muted);
 }
+
+/* --- Mobile Specific Styles --- */
+
+/* Hide toggle button by default (Desktop) */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .mobile-toggle {
+    display: flex; /* Show on mobile */
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -260px; /* Hide off-screen */
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 999;
+    transition: left 0.3s ease;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .sidebar.open {
+    left: 0; /* Slide in */
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 998;
+  }
+  
+  /* Ensure main content doesn't get squeezed */
+  main {
+    padding-top: 60px; /* Space for the floating toggle button */
+  }
+}
