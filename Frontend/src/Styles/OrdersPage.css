@@ -44,6 +44,28 @@
 .search-wrapper input { padding: 8px 8px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-size: 14px; width: 220px; }
 .filter-btn { background: white; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: var(--text-gray); }
 
+/* Mobile responsive table */
+@media (max-width: 768px) {
+  .table-container { overflow-x: auto; }
+  .order-table { font-size: 12px; }
+  .order-table th { padding: 8px 12px; }
+  .order-table td { padding: 8px 12px; }
+}
+
+@media (max-width: 480px) {
+  .orders-page { padding: 16px; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .header-actions { width: 100%; flex-direction: column; }
+  .btn { width: 100%; }
+  .table-toolbar { flex-direction: column; padding: 12px; }
+  .table-tabs { flex-direction: column; gap: 8px; }
+  .search-filter-area { flex-direction: column; }
+  .search-wrapper input { width: 100%; }
+  .order-table { font-size: 11px; }
+  .order-table th { padding: 6px 8px; font-size: 10px; }
+  .order-table td { padding: 6px 8px; }
+}
+
 /* Table Styles */
 .loading-state, .empty-state { padding: 40px; text-align: center; color: var(--text-gray); }
 .order-table { width: 100%; border-collapse: collapse; }
