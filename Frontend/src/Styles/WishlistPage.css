@@ -39,7 +39,16 @@
 
 .booksGrid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 24px;
+}
+
+/* Mobile only: 2 columns on small screens */
+@media (max-width: 480px) {
+    .booksGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
 }
 
 /* =========================
