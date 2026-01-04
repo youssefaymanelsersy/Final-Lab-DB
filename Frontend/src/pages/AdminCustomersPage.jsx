@@ -53,7 +53,16 @@ export default function AdminCustomersPage() {
                                         : '/default-avatar.png'
                                 }
                                 alt={c.username}
-                                style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid #ddd' }}
+                                style={{ 
+                                    width: 64, 
+                                    height: 64, 
+                                    minWidth: 64,
+                                    minHeight: 64,
+                                    borderRadius: '50%', 
+                                    objectFit: 'cover', 
+                                    border: '1px solid #ddd',
+                                    flexShrink: 0
+                                }}
                             />
                             <div>
                                 <div style={{ fontWeight: 600, fontSize: 18 }}>{c.username}</div>
