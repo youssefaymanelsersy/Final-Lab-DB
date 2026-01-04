@@ -14,7 +14,7 @@ export default function BookCard({
 }) {
   const isCustomer = typeof onAddOne === 'function';
   const coverSrc =
-    book.cover_url || 'https://via.placeholder.com/300x420?text=No+Cover';
+    book.cover_url || 'https://placehold.co/300x420?text=No+Cover';
   const price = Number(book.selling_price || 0).toFixed(2);
   const avgRating = Number(book.avg_rating || 0);
   const reviewCount = Number(book.review_count || 0);
