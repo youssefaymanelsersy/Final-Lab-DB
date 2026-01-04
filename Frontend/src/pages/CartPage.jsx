@@ -313,6 +313,10 @@ export default function CartPage({ user }) {
 
           {!isEmpty && (
             <div className="ctCheckoutSection">
+              <div className="ctSubtotal">
+                <span>Subtotal:</span>
+                <span className="ctSubtotalAmount">{formatMoney(subtotal)}</span>
+              </div>
               <button
                 className="btn-primary ctCheckoutBtn"
                 onClick={handleStripeCheckout}

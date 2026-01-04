@@ -11,5 +11,15 @@
     "not firefox <= 144",
     "not chrome <= 112",
     "not samsung <= 28"
-  ]
+  ],
+  "hints": {
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "-webkit-overflow-scrolling"
+        ]
+      }
+    ]
+  }
 }
