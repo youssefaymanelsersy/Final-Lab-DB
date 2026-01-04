@@ -11,7 +11,7 @@ const navItems = [
 ];
 
 export default function Sidebar({ user, onLogout }) {
-  const [isOpen, setIsOpen] = useState(false); // Mobile state
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const handleLinkClick = () => {
