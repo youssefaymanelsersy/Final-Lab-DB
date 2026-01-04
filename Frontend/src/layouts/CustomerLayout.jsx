@@ -1,12 +1,11 @@
-import CustomerSidebar from '../components/CustomerSidebar.jsx';
+import CustomerSidebar from '../components/CustomerSidebar.jsx'; 
 import { Outlet } from 'react-router-dom';
-
 
 export default function CustomerLayout({ user, onLogout }) {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="layout-container">
       <CustomerSidebar user={user} onLogout={onLogout} />
-      <main style={{ flex: 1 }}>
+      <main className="main-content">
         <Outlet context={{ user }} /> 
       </main>
     </div>
