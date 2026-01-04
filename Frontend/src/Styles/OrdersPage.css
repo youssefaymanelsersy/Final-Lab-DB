@@ -46,8 +46,8 @@
 
 /* Mobile responsive table */
 @media (max-width: 768px) {
-  .table-container { overflow-x: auto; }
-  .order-table { font-size: 12px; }
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .order-table { font-size: 12px; min-width: 600px; }
   .order-table th { padding: 8px 12px; }
   .order-table td { padding: 8px 12px; }
 }
@@ -58,12 +58,13 @@
   .header-actions { width: 100%; flex-direction: column; }
   .btn { width: 100%; }
   .table-toolbar { flex-direction: column; padding: 12px; }
-  .table-tabs { flex-direction: column; gap: 8px; }
+  .table-tabs { flex-direction: column; gap: 8px; overflow-x: auto; }
   .search-filter-area { flex-direction: column; }
   .search-wrapper input { width: 100%; }
-  .order-table { font-size: 11px; }
-  .order-table th { padding: 6px 8px; font-size: 10px; }
-  .order-table td { padding: 6px 8px; }
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .order-table { font-size: 12px; min-width: 700px; }
+  .order-table th { padding: 8px 10px; font-size: 11px; }
+  .order-table td { padding: 8px 10px; white-space: nowrap; }
 }
 
 /* Table Styles */
