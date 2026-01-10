@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://final-lab-db-production.up.railway.app/api/:path*"
+      "destination": "https://vulnerable-dela-youssef-org-e7b76fa3.koyeb.app/api/:path*"
     },
     {
       "source": "/(.*)",
