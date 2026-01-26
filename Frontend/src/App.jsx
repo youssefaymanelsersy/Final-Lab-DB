@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import OrdersPage from './pages/OrdersPage.jsx';
 
 // Layouts
@@ -71,7 +72,8 @@ export default function App() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <Routes>
+    <>
+      <Routes>
       {/* --------------------- */}
       {/* AUTH ROUTES */}
       {/* --------------------- */}
@@ -140,5 +142,7 @@ export default function App() {
       {/* --------------------- */}
       <Route path="*" element={<Navigate to="/auth" replace />} />
     </Routes>
+    <SpeedInsights />
+  </>
   );
 }

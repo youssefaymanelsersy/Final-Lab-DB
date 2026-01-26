@@ -1,0 +1,41 @@
+# Vercel Speed Insights Implementation
+
+## Summary
+Successfully implemented Vercel Speed Insights for the React application as requested. The integration enables real-time performance tracking for the web app when deployed to Vercel.
+
+## Changes Made
+
+### 1. Installed Dependencies
+- Added `@vercel/speed-insights@^1.3.1` package to the project
+- Updated `package.json` and `package-lock.json` accordingly
+
+### 2. Modified Files
+- **Frontend/src/App.jsx**
+  - Added import: `import { SpeedInsights } from '@vercel/speed-insights/react';`
+  - Wrapped the Routes component in a React Fragment (`<>...</>`)
+  - Added `<SpeedInsights />` component after the Routes block
+  - This ensures Speed Insights tracks all page navigations in the React Router application
+
+### 3. Implementation Details
+- Used `@vercel/speed-insights/react` which is the recommended package for React applications (Vite + React)
+- Placed the SpeedInsights component at the root level of the App component to track all routes
+- Followed the pattern from Vercel's documentation for create-react-app/Vite React applications
+- The component will automatically inject the tracking script and start collecting performance metrics once deployed to Vercel
+
+## Verification
+✅ Build completed successfully without errors
+✅ No linting errors introduced by the changes
+✅ All dependencies installed correctly
+✅ Package lock file updated
+
+## Next Steps
+To complete the setup:
+1. Enable Speed Insights in the Vercel dashboard (Project → Speed Insights tab → Enable)
+2. Deploy the application to Vercel
+3. After deployment, verify the `/_vercel/speed-insights/script.js` script is loaded in the browser
+4. View performance data in the Vercel dashboard under the Speed Insights tab
+
+## Notes
+- The Speed Insights component only tracks metrics in production environments
+- No additional configuration is required for basic usage
+- The implementation follows Vercel's best practices for React/Vite applications
