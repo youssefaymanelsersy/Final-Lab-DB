@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://f1632697-0ff4-4fb8-b2fb-f41b96783198.e1-eu-north-azure.choreoapps.dev/api/:path*"
+      "destination": "https://final-lab-db.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
