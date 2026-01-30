@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 const express = require("express");
-const path = require("path");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { verifyAdmin } = require("./middleware/auth");
@@ -32,15 +31,6 @@ app.post(
   express.raw({ type: "application/json" }),
   require("./routes/stripeWebhook")
 );
-
-/* =======================
-  STATIC FILES
-======================= */
-const avatarsDir = path.resolve(process.cwd(), "uploads", "avatars");
-app.use("/uploads/avatars", express.static(avatarsDir, {
-  maxAge: "7d",
-  index: false
-}));
 
 /* =======================
   ROUTES

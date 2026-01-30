@@ -170,8 +170,6 @@ router.put(
 );
 
 // 3) Upload/Update avatar
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
 const sharp = require('sharp');
 
@@ -205,27 +203,22 @@ router.post(
         .webp({ quality: 85 })
         .toBuffer();
 
-      const driver = (process.env.STORAGE_DRIVER || 'local').toLowerCase();
-      let publicUrl;
-
-      if (driver === 'tidb') {
-        // Store avatar bytes in TiDB
+      // Store avatar bytes in TiDB
+      try {
         await pool.query(
           `INSERT INTO customer_avatars (customer_id, mime_type, image_data)
                 VALUES (?, 'image/webp', ?)
                 ON DUPLICATE KEY UPDATE mime_type=VALUES(mime_type), image_data=VALUES(image_data), updated_at=CURRENT_TIMESTAMP`,
           [id, webpBuffer]
         );
-        publicUrl = `/api/customers/${id}/avatar`;
-      } else {
-        // Local FS storage
-        const baseDir = path.resolve(process.cwd(), 'uploads', 'avatars');
-        await fs.promises.mkdir(baseDir, { recursive: true });
-        const filename = `c${id}_${Date.now()}.webp`;
-        const filepath = path.join(baseDir, filename);
-        await fs.promises.writeFile(filepath, webpBuffer);
-        publicUrl = `/uploads/avatars/${filename}`;
+      } catch (dbErr) {
+        if (/Unknown table 'customer_avatars'|no such table/.test(dbErr.message)) {
+          return res.status(500).json({ ok: false, error: 'Avatar storage not initialized. Please run migrations.' });
+        }
+        throw dbErr;
       }
+
+      const publicUrl = `/api/customers/${id}/avatar`;
 
       // Try to persist URL if column exists; ignore if not migrated yet
       try {
@@ -244,7 +237,7 @@ router.post(
   }
 );
 
-// 4) Serve avatar (works for TiDB storage)
+// 4) Serve avatar from TiDB
 router.get('/:id/avatar', async (req, res) => {
   try {
     const id = Number(req.params.id);
