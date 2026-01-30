@@ -8,12 +8,30 @@ A full-stack online bookstore application built with **React**, **Express.js**, 
 
 ---
 
+## 👤 Role & Responsibilities
+
+- **Lead Backend Developer**
+
+  - Designed the backend architecture and REST API structure
+  - Created and implemented the full database schema and ERD
+  - Integrated TiDB Cloud (MySQL-compatible) with connection pooling
+  - Implemented authentication, authorization, and role-based access
+  - Designed order processing, inventory tracking, and auto-reorder logic
+  - Containerized backend services using Docker and Docker Compose
+
+---
+
 ## 🏗️ Architecture
 
-- **Frontend**: React 19 + Vite + React Router
-- **Backend**: Node.js + Express.js (modular routing)
+- **Frontend**: React 19 + Vite + React Router (role-based UI)
+- **Backend**: Node.js + Express.js  
+  - Modular routing (auth, books, customers, admin)
+  - RESTful API design
+  - JWT authentication & role-based authorization
 - **Database**: TiDB Cloud (MySQL-compatible)
-- **Deployment**: Docker Compose (frontend, backend containers)
+  - Relational schema with foreign keys & constraints
+  - Optimized for scalability and transactional consistency
+- **Deployment**: Docker Compose (isolated frontend & backend services)
 
 ---
 
@@ -136,6 +154,16 @@ The database contains:
 - **Publisher Orders**: Automatic stock replenishment
 
 See `Database/schema.sql` for full schema.
+
+---
+
+## ⚙️ Backend Business Logic
+
+- Centralized order processing with transactional integrity
+- Automatic stock monitoring and reorder triggering
+- Publisher order deduplication to avoid duplicate replenishments
+- Secure checkout flow with Stripe integration
+- Clean separation between routes, controllers, and database access
 
 ---
 
@@ -300,7 +328,7 @@ npm run dev  # Vite dev server
 
 ## 👥 Team Members
 
-- [Ahmed Sameh](https://github.com/ahmeddsameh-glitch)
-- [Youssef Ayman](https://github.com/youssefaymanelsersy)
-- [Ahmed Hossam](https://github.com/Ahmad-Hossam-88)
-- [Omar Mohamed](https://github.com/omar-franco)
+- [Youssef Ayman](https://github.com/youssefaymanelsersy) – Lead Backend Developer
+- [Ahmed Sameh](https://github.com/ahmeddsameh-glitch) – Lead Frontend Developer
+- [Ahmed Hossam](https://github.com/Ahmad-Hossam-88) – Backend Developer
+- [Omar Mohamed](https://github.com/omar-franco) – Frontend Developer
