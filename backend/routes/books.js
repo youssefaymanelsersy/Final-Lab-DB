@@ -21,23 +21,49 @@ router.post('/', async (req, res) => {
         const category = String(req.body.category || '').trim(); // category filter
         const author = String(req.body.author || '').trim(); // author filter
         const publisher = String(req.body.publisher || '').trim(); // publisher filter
+
+        const toFiniteNumber = (value) => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : null;
+        };
         
         // Price range filters
-        const price_min = Number(req.body.price_min) || 0;
-        const price_max = Number(req.body.price_max) || Number.MAX_VALUE;
+        const rawPriceMin = toFiniteNumber(req.body.price_min);
+        const rawPriceMax = toFiniteNumber(req.body.price_max);
+        const price_min = rawPriceMin === null ? 0 : Math.max(rawPriceMin, 0);
+        const price_max = rawPriceMax === null ? Number.MAX_VALUE : Math.max(rawPriceMax, 0);
         
-        // Sorting options: 'price', 'title', 'year', 'newest' (default)
+        // Sorting options: whitelist to known SQL snippets
         const sort_by = String(req.body.sort_by || 'newest').trim().toLowerCase();
+        const sortMap = {
+            newest: 'b.created_at DESC, b.isbn DESC',
+            price: 'b.selling_price ASC, b.isbn DESC',
+            price_desc: 'b.selling_price DESC, b.isbn DESC',
+            title: 'b.title ASC, b.isbn DESC',
+            title_desc: 'b.title DESC, b.isbn DESC',
+            year: 'b.publication_year DESC, b.isbn DESC',
+            stock_low: 'b.stock_qty ASC, b.isbn DESC',
+        };
+        const orderBy = sortMap[sort_by] || sortMap.newest;
 
         // pagination (safe defaults)
-        const limit = Math.min(Number(req.body.limit || 20), 100);
-        const offset = Math.max(Number(req.body.offset || 0), 0);
+        const rawLimit = toFiniteNumber(req.body.limit);
+        const rawOffset = toFiniteNumber(req.body.offset);
+        const limit = Math.min(Math.max(Math.trunc(rawLimit === null ? 20 : rawLimit), 1), 100);
+        const offset = Math.max(Math.trunc(rawOffset === null ? 0 : rawOffset), 0);
+
+        if (price_min > price_max) {
+            return res.status(400).json({
+                ok: false,
+                error: 'price_min cannot be greater than price_max',
+            });
+        }
 
         // ---- 2) Build SQL dynamically, but SAFELY ----
         // We use placeholders (?) to prevent SQL injection.
         // JOIN with authors and publishers tables for comprehensive search
         let sql = `
-            SELECT DISTINCT
+            SELECT
                 b.isbn,
                 b.title,
                 b.publisher_id,
@@ -111,23 +137,8 @@ router.post('/', async (req, res) => {
                 b.selling_price, b.category, b.stock_qty, b.threshold, 
                 b.cover_url, b.created_at, p.name`;
 
-        // Add ORDER BY based on sort_by parameter
-        if (sort_by === 'price') {
-            sql += ` ORDER BY b.selling_price ASC, b.isbn DESC`;
-        } else if (sort_by === 'price_desc') {
-            sql += ` ORDER BY b.selling_price DESC, b.isbn DESC`;
-        } else if (sort_by === 'title') {
-            sql += ` ORDER BY b.title ASC, b.isbn DESC`;
-        } else if (sort_by === 'title_desc') {
-            sql += ` ORDER BY b.title DESC, b.isbn DESC`;
-        } else if (sort_by === 'year') {
-            sql += ` ORDER BY b.publication_year DESC, b.isbn DESC`;
-        } else if (sort_by === 'stock_low') {
-            sql += ` ORDER BY b.stock_qty ASC, b.isbn DESC`;
-        } else {
-            // default: newest first
-            sql += ` ORDER BY b.created_at DESC, b.isbn DESC`;
-        }
+        // Add ORDER BY based on whitelisted sort options
+        sql += ` ORDER BY ${orderBy}`;
         
         sql += ` LIMIT ? OFFSET ?`;
         params.push(limit, offset);
